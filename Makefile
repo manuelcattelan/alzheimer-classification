@@ -18,5 +18,8 @@ run_dt: data src/models/decision_tree_model.py
 
 # Clean target
 clean:
+	@echo "Cleaning intermediary data..."
 	@rm -rf data/processed/
+	@echo "Cleaning results..."
 	@rm -rf results/
+	@echo "Done!"
