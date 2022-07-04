@@ -1,25 +1,28 @@
 # Makefile
 
-.PHONY: all clean data
+RAW_DATAPATH = data/raw
+PROCESSED_DATAPATH = data/processed
+RESULTS_DATAPATH = results
+SCRIPTS_DATAPATH = src
 
-all: run_dt
+RAW_CSV = $(wildcard $(RAW_DATAPATH)/*/*.csv)
+PROCESSED_CSV = $(patsubst $(RAW_DATAPATH)/%.csv, $(PROCESSED_DATAPATH)/%.csv, $(RAW_CSV))
 
-# Target for processing data from raw to processed
-data: data/raw/air data/raw/paper data/raw/ap src/data/build_data.py
-	@echo ""
-	@echo "Running src/data/build_data.py..."
-	@cd src/data/ && python3 build_data.py 
+.PHONY: all clean
 
-# Target for running decision tree classification on processed data
-run_dt: data src/models/decision_tree_model.py
-	@echo ""
-	@echo "Running src/models/decision_tree_model.py..."
-	@cd src/models && python3 decision_tree_model.py
+all: run
 
-# Clean target
-clean:
-	@echo "Cleaning intermediary data..."
-	@rm -rf data/processed/
-	@echo "Cleaning results..."
-	@rm -rf results/
+$(PROCESSED_CSV): $(PROCESSED_DATAPATH)/%.csv: $(RAW_DATAPATH)/%.csv $(SCRIPTS_DATAPATH)/data/build_data.py
+	@python3 $(SCRIPTS_DATAPATH)/data/build_data.py -i $< -o $@
+
+status:
+	@echo "Cleansing data..."
+
+run: status $(PROCESSED_CSV)
 	@echo "Done!"
+	@echo ""
+	@cd $(SCRIPTS_DATAPATH)/models/ && python3 decision_tree_model.py
+
+clean:
+	rm -rf $(PROCESSED_DATAPATH)
+	rm -rf $(RESULTS_DATAPATH)
