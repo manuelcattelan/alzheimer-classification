@@ -1,5 +1,6 @@
 # Modules
 from pathlib import Path
+import argparse
 import pandas as pd
 import numpy as np
 import glob
@@ -69,9 +70,9 @@ def map_data(df_to_map):
     df_mapped = df_to_map.copy()
 
     # Mapping dictionary for string to numeric features
-    sex_map = {'    Maschile': 0, '    Femminile': 1}
-    work_map = {'   Manuale': 0, '   Intellettuale': 1}
-    label_map = {'   Sano': 0, '   Malato': 1}
+    sex_map = {'Maschile': 0, 'Femminile': 1}
+    work_map = {'Manuale': 0, 'Intellettuale': 1}
+    label_map = {'Sano': 0, 'Malato': 1}
 
     # Map parameter dataframe with mapping dictionary
     df_mapped['Sex'] = df_to_map['Sex'].map(sex_map)
@@ -120,9 +121,15 @@ def main():
 
     # Read all CSV files from the file lists and store them in corresponding dataframe list
     print("Reading files from raw data folder...")
-    air_df_list_raw = [ pd.read_csv(csv, sep = SEP) for csv in air_csv_list_raw ]
-    paper_df_list_raw = [ pd.read_csv(csv, sep = SEP) for csv in paper_csv_list_raw ]
-    ap_df_list_raw = [ pd.read_csv(csv, sep = SEP) for csv in ap_csv_list_raw ]
+    air_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
+                                                                  'Work': str.strip,
+                                                                  'Label': str.strip}) for csv in air_csv_list_raw ]
+    paper_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
+                                                                  'Work': str.strip,
+                                                                  'Label': str.strip}) for csv in paper_csv_list_raw ]
+    ap_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
+                                                                  'Work': str.strip,
+                                                                  'Label': str.strip}) for csv in ap_csv_list_raw ]
     
     # Clean up input data where feature acquisition failed
     print("Cleaning datasets...")
