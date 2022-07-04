@@ -1,19 +1,8 @@
-# Modules
 from pathlib import Path
 import argparse
 import pandas as pd
 import numpy as np
-import glob
 import os
-
-# Folder paths for raw dataset 
-AIR_RAW_DATAPATH = "../../data/raw/air/"
-PAPER_RAW_DATAPATH = "../../data/raw/paper/"
-AP_RAW_DATAPATH = "../../data/raw/ap/"
-# Folder path for processed dataset
-AIR_PROCESSED_DATAPATH = "../../data/processed/air/"
-PAPER_PROCESSED_DATAPATH = "../../data/processed/paper/"
-AP_PROCESSED_DATAPATH = "../../data/processed/ap/"
 
 # Column range holding features that need to be normalized (numeric features)
 TO_NORMALIZE_FEATURES_RANGE = np.r_[ 1:87, 88, 90 ]
@@ -81,81 +70,43 @@ def map_data(df_to_map):
 
     # Return correctly mapped dataframe
     return df_mapped
-        
-# Export dataframe list as .csv files
-def export_data(df_to_export, df_index, df_type):
-    # Match filename and folderpath with type of dataframe being exported
-    match df_type:
-        case 'air':
-            base_name = 'onAir_T'
-            base_folder_path = Path(AIR_PROCESSED_DATAPATH)
-        case 'paper':
-            base_name = 'onPaper_T'
-            base_folder_path = Path(PAPER_PROCESSED_DATAPATH)
-        case 'ap':
-            base_name = 'onAirOnPaper_T'
-            base_folder_path = Path(AP_PROCESSED_DATAPATH)
 
-    # Create directory in which to export data if it does not exist already
-    base_folder_path.mkdir(parents = True, exist_ok = True)
-
-    # Create filename using file index given as argument to match format of input data
-    if (df_index < 9):
-        file_no = '0' + str(df_index + 1)
-    else:
-        file_no = str(df_index + 1)
-
-    # Create full file path by contatenating the base folder path with the full file name
-    full_file_name = base_name + file_no + '.csv'
-    full_file_path = base_folder_path / full_file_name
-
-    # Export dataframe to the complete file path
-    df_to_export.to_csv(full_file_path, index = False)
+# Export preprocessed df as .csv file
+def export_data(df_to_export, export_path):
+    # Export file in argument path
+    df_to_export.to_csv(export_path, index = False)
 
 # Main function
 def main():
-    # Make three lists containing all corresponding CSV file paths that need to be read
-    air_csv_list_raw = sorted(glob.glob(os.path.join(AIR_RAW_DATAPATH, "*.csv")))
-    paper_csv_list_raw = sorted(glob.glob(os.path.join(PAPER_RAW_DATAPATH, "*.csv")))
-    ap_csv_list_raw = sorted(glob.glob(os.path.join(AP_RAW_DATAPATH, "*.csv")))
-
-    # Read all CSV files from the file lists and store them in corresponding dataframe list
-    print("Reading files from raw data folder...")
-    air_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
-                                                                  'Work': str.strip,
-                                                                  'Label': str.strip}) for csv in air_csv_list_raw ]
-    paper_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
-                                                                  'Work': str.strip,
-                                                                  'Label': str.strip}) for csv in paper_csv_list_raw ]
-    ap_df_list_raw = [ pd.read_csv(csv, sep = SEP, converters = {'Sex': str.strip,
-                                                                  'Work': str.strip,
-                                                                  'Label': str.strip}) for csv in ap_csv_list_raw ]
+    # Set up parser
+    parser = argparse.ArgumentParser(description="Python script used to preprocess raw data for classification",
+                                     formatter_class = argparse.ArgumentDefaultsHelpFormatter)
+    # Add possible cli arguments to parser
+    parser.add_argument("-i", help = "Input file to read in .csv format")
+    parser.add_argument("-o", help = "Output file to write in .csv format")
+    # Parse cli arguments and store them in variable 'args'
+    args = parser.parse_args()
+    # Store cli arguments
+    inputFilePath = args.i
+    outputFilePath = args.o
     
-    # Clean up input data where feature acquisition failed
-    print("Cleaning datasets...")
-    air_df_list_cleaned = [ clean_data(df) for df in air_df_list_raw ]
-    paper_df_list_cleaned = [ clean_data(df) for df in paper_df_list_raw ]
-    ap_df_list_cleaned = [ clean_data(df) for df in ap_df_list_raw ]
+    # Create output directory if not existent
+    outputFileDir = Path(os.path.dirname(outputFilePath))
+    outputFileDir.mkdir(parents=True, exist_ok=True)
+    
+    # Read input file
+    df_raw = pd.read_csv(inputFilePath, sep=SEP, converters={'Sex': str.strip,
+                                                     'Work': str.strip,
+                                                     'Label': str.strip})
+    # Clean input file
+    df_cleaned = clean_data(df_raw) 
+    # Normalize input data
+    df_normalized = normalize_data(df_cleaned)
+    # Map input data
+    df_mapped = map_data(df_normalized)
+    # Export input data
+    export_data(df_mapped, outputFilePath)
 
-    # Normalize all dataframes from the dataframe lists and store them 
-    print("Normalizing datasets...")
-    air_df_list_normalized = [ normalize_data(df) for df in air_df_list_cleaned ]
-    paper_df_list_normalized = [ normalize_data(df) for df in paper_df_list_cleaned ]
-    ap_df_list_normalized = [ normalize_data(df) for df in ap_df_list_cleaned ]
-
-    # Map string features to numeric features
-    print("Mapping datasets...")
-    air_df_list_mapped = [ map_data(df) for df in air_df_list_normalized ]
-    paper_df_list_mapped = [ map_data(df) for df in paper_df_list_normalized ]
-    ap_df_list_mapped = [ map_data(df) for df in ap_df_list_normalized ]
-
-    # Export normalized dataframes as CSV to make it accessible from classifiers
-    print("Exporting new datasets to processed data folder...")
-    [ export_data(df, df_index, 'air') for df_index, df in enumerate(air_df_list_mapped) ]
-    [ export_data(df, df_index, 'paper') for df_index, df in enumerate(paper_df_list_mapped) ]
-    [ export_data(df, df_index, 'ap') for df_index, df in enumerate(ap_df_list_mapped) ]
-
-    print("Done!")
-
+# Main loop
 if __name__ == "__main__":
     main()
