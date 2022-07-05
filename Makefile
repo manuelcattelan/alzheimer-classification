@@ -1,28 +1,35 @@
 # Makefile
+input_path?=${dir ${wildcard data/raw/*/}}
 
-RAW_DATAPATH = data/raw
-PROCESSED_DATAPATH = data/processed
-RESULTS_DATAPATH = results
-SCRIPTS_DATAPATH = src
+raw_dir=data/raw
+processed_dir=data/processed
+results_dir=results
+scripts_dir=src
 
-RAW_CSV = $(wildcard $(RAW_DATAPATH)/*/*.csv)
-PROCESSED_CSV = $(patsubst $(RAW_DATAPATH)/%.csv, $(PROCESSED_DATAPATH)/%.csv, $(RAW_CSV))
+input_data=$(wildcard $(addsuffix *csv, $(basename $(input_path))))
+output_data=$(patsubst $(raw_dir)%.csv, $(processed_dir)%.csv, $(input_data))
 
-.PHONY: all clean
+.PHONY: data all
 
-all: run
+all: run-all
 
-$(PROCESSED_CSV): $(PROCESSED_DATAPATH)/%.csv: $(RAW_DATAPATH)/%.csv $(SCRIPTS_DATAPATH)/data/build_data.py
-	@python3 $(SCRIPTS_DATAPATH)/data/build_data.py -i $< -o $@
+$(output_data): $(processed_dir)%.csv: $(raw_dir)%.csv $(scripts_dir)/data/build_data.py
+	python3 $(scripts_dir)/data/build_data.py -i $< -o $@
 
-status:
-	@echo "Cleansing data..."
+run-single: data
+	@cd $(scripts_dir)/models/ && python3 decision_tree_model.py
 
-run: status $(PROCESSED_CSV)
-	@echo "Done!"
-	@echo ""
-	@cd $(SCRIPTS_DATAPATH)/models/ && python3 decision_tree_model.py
+run-folder: data
+	@cd $(scripts_dir)/models/ && python3 decision_tree_model.py
+
+run-all: data
+	@cd $(scripts_dir)/models/ && python3 decision_tree_model.py
+
+data: $(output_data)
 
 clean:
-	rm -rf $(PROCESSED_DATAPATH)
-	rm -rf $(RESULTS_DATAPATH)
+	@echo "Cleaning $(processed_dir)/ folder..."
+	@rm -rf $(processed_dir)
+	@echo "Cleaning $(results_dir)/ folder..."
+	@rm -rf $(results_dir)
+	@echo "Done!"
