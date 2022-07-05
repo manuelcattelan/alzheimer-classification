@@ -6,7 +6,7 @@ import os
 
 # Column range holding features that need to be normalized (numeric features)
 TO_NORMALIZE_FEATURES_RANGE = np.r_[ 1:87, 88, 90 ]
-# Column range holding features that need to be filtered out
+# Column range holding features that need to be filtered out (could contain only 0s)
 TO_CLEAN_FEATURES_RANGE = np.r_[ 1:86 ]
 # Separator character used to read input data
 SEP = "," 
@@ -16,11 +16,11 @@ def clean_data(df_to_clean):
     # Create copy of dataframe given as parameter
     df_to_clean = df_to_clean.copy()
 
-    # Create mask for all rows with only value 0 in TO_CLEAN_FEATURES_RANGE range
+    # Create mask for all rows with only 0 values in [TO_CLEAN_FEATURES_RANGE] range
     rows_to_drop_mask = df_to_clean.iloc[:, TO_CLEAN_FEATURES_RANGE].eq(0).all(1)
-    # Get list of row indexes from dataframe containing only rows to drop
+    # Get list of indexes for rows that match mask
     rows_to_drop = list(df_to_clean[rows_to_drop_mask].index.values)
-    # Drop selected rows from dataframe to clean
+    # Drop selected rows from raw dataframe
     df_cleaned = df_to_clean.drop(rows_to_drop)
 
     # Return new dataframe only containing correctly gathered data
@@ -44,7 +44,7 @@ def normalize_data(df_to_normalize):
         # If feature column only contains 0s, store 0.0
         if (max_value - min_value) == 0:
             df_normalized[feature] = float(0)
-        # If feature column does not contain 0s only, replace each entry with normalized data
+        # If feature column does not contain 0s only, replace each entry with normalized value
         else:
             df_normalized[feature] = (df_normalized[feature] - min_value) / (max_value - min_value)
 
@@ -58,12 +58,12 @@ def map_data(df_to_map):
     # Dataframe to be mapped with dictionaries
     df_mapped = df_to_map.copy()
 
-    # Mapping dictionary for string to numeric features
+    # Mapping dictionaries for string to numeric features
     sex_map = {'Maschile': 0, 'Femminile': 1}
     work_map = {'Manuale': 0, 'Intellettuale': 1}
     label_map = {'Sano': 0, 'Malato': 1}
 
-    # Map parameter dataframe with mapping dictionary
+    # Map dataframe with mapping dictionaries
     df_mapped['Sex'] = df_to_map['Sex'].map(sex_map)
     df_mapped['Work'] = df_to_map['Work'].map(work_map)
     df_mapped['Label'] = df_to_map['Label'].map(label_map)
@@ -71,9 +71,9 @@ def map_data(df_to_map):
     # Return correctly mapped dataframe
     return df_mapped
 
-# Export preprocessed df as .csv file
+# Export df as .csv file
 def export_data(df_to_export, export_path):
-    # Export file in argument path
+    # Export file using path specified with -o flag
     df_to_export.to_csv(export_path, index = False)
 
 # Main function
@@ -86,25 +86,26 @@ def main():
     parser.add_argument("-o", help = "Output file to write in .csv format")
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
+    args = vars(args)
     # Store cli arguments
-    inputFilePath = args.i
-    outputFilePath = args.o
+    inputFilePath = args['i']
+    outputFilePath = args['o']
     
     # Create output directory if not existent
     outputFileDir = Path(os.path.dirname(outputFilePath))
     outputFileDir.mkdir(parents=True, exist_ok=True)
     
-    # Read input file
+    # Read input data
     df_raw = pd.read_csv(inputFilePath, sep=SEP, converters={'Sex': str.strip,
                                                      'Work': str.strip,
                                                      'Label': str.strip})
-    # Clean input file
+    # Clean input data
     df_cleaned = clean_data(df_raw) 
     # Normalize input data
     df_normalized = normalize_data(df_cleaned)
     # Map input data
     df_mapped = map_data(df_normalized)
-    # Export input data
+    # Export preprocessed data
     export_data(df_mapped, outputFilePath)
 
 # Main loop
