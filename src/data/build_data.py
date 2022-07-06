@@ -2,6 +2,7 @@ from pathlib import Path
 import argparse
 import pandas as pd
 import numpy as np
+import glob
 import os
 
 # Column range holding features that need to be normalized (numeric features)
@@ -88,25 +89,54 @@ def main():
     args = parser.parse_args()
     args = vars(args)
     # Store cli arguments
-    inputFilePath = args['i']
-    outputFilePath = args['o']
+    input_path = args['i']
+    output_path = args['o']
     
-    # Create output directory if not existent
-    outputFileDir = Path(os.path.dirname(outputFilePath))
-    outputFileDir.mkdir(parents=True, exist_ok=True)
+    # Create output directory if it does not exist
+    output_file_dir = Path(os.path.dirname(output_path))
+    output_file_dir.mkdir(parents=True, exist_ok=True)
     
-    # Read input data
-    df_raw = pd.read_csv(inputFilePath, sep=SEP, converters={'Sex': str.strip,
-                                                     'Work': str.strip,
-                                                     'Label': str.strip})
-    # Clean input data
-    df_cleaned = clean_data(df_raw) 
-    # Normalize input data
-    df_normalized = normalize_data(df_cleaned)
-    # Map input data
-    df_mapped = map_data(df_normalized)
-    # Export preprocessed data
-    export_data(df_mapped, outputFilePath)
+    # Check whether input and output arguments are file or directory
+    input_is_file = os.path.isfile(input_path)
+    input_is_dir = os.path.isdir(input_path)
+    output_is_dir = os.path.isdir(output_path)
+
+    if (input_is_file and not(output_is_dir)):
+        # Read input data
+        df_raw = pd.read_csv(input_path, sep=SEP, converters={'Sex': str.strip,
+                                                         'Work': str.strip,
+                                                         'Label': str.strip})
+        # Clean input data
+        df_cleaned = clean_data(df_raw) 
+        # Normalize input data
+        df_normalized = normalize_data(df_cleaned)
+        # Map input data
+        df_mapped = map_data(df_normalized)
+        # Export preprocessed data
+        export_data(df_mapped, output_path)
+
+    if (input_is_dir and output_is_dir):
+        # List of paths for each file inside input dir
+        input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
+        # List of filenames only inside input dir
+        input_file_names = [ os.path.basename(input_path) for input_path in input_paths]
+        # List of paths for each file inside output dir
+        output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
+
+        # For each file in input dir, read it, preprocess it
+        for input_file, output_file in zip(input_paths, output_paths):
+            # Read input data
+            df_raw = pd.read_csv(input_file, sep=SEP, converters={'Sex': str.strip,
+                                                             'Work': str.strip,
+                                                             'Label': str.strip})
+            # Clean input data
+            df_cleaned = clean_data(df_raw) 
+            # Normalize input data
+            df_normalized = normalize_data(df_cleaned)
+            # Map input data
+            df_mapped = map_data(df_normalized)
+            # Export preprocessed data
+            export_data(df_mapped, output_file)
 
 # Main loop
 if __name__ == "__main__":
