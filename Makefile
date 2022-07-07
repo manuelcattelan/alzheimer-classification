@@ -3,8 +3,8 @@
 # Environmental variables from commandline
 # default input data is the entire raw folder
 # default models to run are all
-input_path ?= ${dir ${wildcard data/raw/*/}}
-models ?= all
+input_path?=${dir ${wildcard data/raw/*/}}
+models?=all
 
 # project directories
 raw_dir=data/raw
@@ -12,28 +12,22 @@ processed_dir=data/processed
 results_dir=results
 scripts_dir=src
 
-# all .csv files from input path
-input_data=$(wildcard $(addsuffix *csv, $(basename $(input_path))))
-# all .csv files to export as output
-processed_data=$(patsubst $(raw_dir)%.csv, $(processed_dir)%.csv, $(input_data))
-# all .txt files to which classification results are stored
-results_data=$(patsubst $(processed_dir)%.csv, $(results_dir)%.txt, $(processed_data))
+input=$(input_path)
+processed=$(patsubst $(raw_dir)%,$(processed_dir)%,$(input))
+results=$(patsubst $(processed_dir)%,$(results_dir)%,$(processed))
 
-.PHONY: all $(input_path)
+$(info $(input))
+$(info $(processed))
+$(info $(results))
 
-all: $(input_path)
+.PHONY: all $(processed) $(results)
 
-$(input_path):
-	@if [ -f $@ ]; then \
-		echo 'file'; \
-	elif [ -d $@ ]; then \
-		echo 'dir'; \
-	fi
+all: $(processed) $(results) 
 
-$(results_data): $(results_dir)%.txt: $(processed_dir)%.csv $(scripts_dir)/models/decision_tree.py
+$(results): $(results_dir)%: $(processed_dir)% $(scripts_dir)/models/decision_tree.py
 	python3 $(scripts_dir)/models/decision_tree.py -i $< -o $@
 
-$(processed_data): $(processed_dir)%.csv: $(raw_dir)%.csv $(scripts_dir)/data/build_data.py
+$(processed): $(processed_dir)%: $(raw_dir)% $(scripts_dir)/data/build_data.py
 	python3 $(scripts_dir)/data/build_data.py -i $< -o $@
 
 clean:
