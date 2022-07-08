@@ -39,11 +39,9 @@ def test_model(model, X, y, test_index):
 
     # Model prediction on test data
     y_pred = model.predict(X_test)
-    # Compute confusion matrix on prediction
-    conf_matrix = confusion_matrix(y_test, y_pred)
 
     # Return model accuracy
-    return conf_matrix
+    return y_test, y_pred
 
 # Run classification on dataframe
 def run_classification_on_df(model, cv, input, output):
@@ -63,13 +61,19 @@ def run_classification_on_df(model, cv, input, output):
     # Subset of dataframe containing entries with labels for classification
     y = df[label]
 
+    # Get unique labels from classification labels
+    labels = np.unique(y)
+
     # Classification start time
     start_time = time.time()
 
     # For each split, train and test model, then store results
     for train_index, test_index in cv.split(X, y):
         trained_model = train_model(model, X, y, train_index)
-        split_conf_matrix = test_model(model, X, y, test_index)
+        model_actual, model_predicted = test_model(trained_model, X, y, test_index)
+
+        # Compute confusion matrix on prediction and append it to splits matrices list
+        split_conf_matrix = confusion_matrix(model_actual, model_predicted, labels=labels)
         split_conf_matrices.append(split_conf_matrix)
 
     # Classification stop time
@@ -88,8 +92,7 @@ def run_classification_on_df(model, cv, input, output):
 
     # Write results to corresponding task file
     with open(output, 'w') as f:
-        print("Results for '{}'".format(input), file=f)
-        print("Confusion matrix\n{}". format(task_conf_matrix), file=f)
+        print("Confusion matrix\n{}". format(pd.DataFrame(task_conf_matrix, index=labels, columns=labels)))
         print("Accuracy: {:.1f}%".format(task_accuracy), file=f)
         print("Precision: {:.1f}%".format(task_precision), file=f)
         print("Recall: {:.1f}%".format(task_recall), file=f)
@@ -101,18 +104,17 @@ def run_classification_on_ds(model, cv, input_path, output_path):
     # List of names for each file inside input dir
     input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
     input_file_names = [ os.path.basename(input_path) for input_path in input_paths]
-    csv_output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
-    txt_output_paths = [ (os.path.splitext(path)[0] + '.txt') for path in csv_output_paths ]
-    # Read every file inside folder and store it in list as df
-    ds = [ pd.read_csv(df, sep=SEP) for df in input_paths]
+    output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
 
     # List of results for each task
     tasks_results = []
 
     # For each df in list, run classification on it and print results to corresponding output file
-    for input, output in zip(input_paths, txt_output_paths):
-        run_classification_on_df(model, cv, input, output)
+    for input, output in zip(input_paths, output_paths):
+        task_results = run_classification_on_df(model, cv, input, output)
+        tasks_results.append(task_results)
 
+# Main function
 def main():
     # Set up parser
     parser = argparse.ArgumentParser(description="Decision tree classifier",
@@ -151,5 +153,6 @@ def main():
         # Run classification on all files inside directory
         run_classification_on_ds(decision_tree, cross_validator, input_path, output_path)
 
+# Main loop
 if __name__ == "__main__":
     main()
