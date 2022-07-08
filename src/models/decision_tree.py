@@ -10,6 +10,8 @@ import argparse
 import glob
 import os
 
+# Metric used to evaluate best task (0: accuracy, 1: precision, 2: recall)
+BEST_TASK_METRIC = 0
 # Features range used by the model to make classification
 MODEL_FEATURES= np.r_[ 1:91 ]
 # Feature name used by the model as the classification label
@@ -26,10 +28,10 @@ def train_model(model, X, y, train_index):
     y_train = y.iloc[train_index]
 
     # Train model on train data
-    model.fit(X_train, y_train)
+    trained_model = model.fit(X_train, y_train)
 
     # Return trained model
-    return model
+    return trained_model
 
 # Test classifier and return accuracy result
 def test_model(model, X, y, test_index):
@@ -40,7 +42,7 @@ def test_model(model, X, y, test_index):
     # Model prediction on test data
     y_pred = model.predict(X_test)
 
-    # Return model accuracy
+    # Return model test data and corresponding predictions
     return y_test, y_pred
 
 # Run classification on dataframe
@@ -60,7 +62,6 @@ def run_classification_on_df(model, cv, input, output):
     X = df[features]
     # Subset of dataframe containing entries with labels for classification
     y = df[label]
-
     # Get unique labels from classification labels
     labels = np.unique(y)
 
@@ -90,14 +91,19 @@ def run_classification_on_df(model, cv, input, output):
     task_precision = (tp / (tp + fp) * 100)
     task_recall = (tp / (tp + fn) * 100)
 
+    # Convert binary labels to original string labels
+    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
+
     # Write results to corresponding task file
     with open(output, 'w') as f:
-        print("Confusion matrix\n{}". format(pd.DataFrame(task_conf_matrix, index=labels, columns=labels)))
+        print("{}". format(pd.DataFrame(task_conf_matrix, index=labels, columns=labels)), file=f)
         print("Accuracy: {:.1f}%".format(task_accuracy), file=f)
         print("Precision: {:.1f}%".format(task_precision), file=f)
         print("Recall: {:.1f}%".format(task_recall), file=f)
         print("Time: {:.3f}s".format(task_time), file=f)
         f.close()
+
+    return (task_accuracy, task_precision, task_recall)
 
 # Run classification on df list
 def run_classification_on_ds(model, cv, input_path, output_path):
@@ -113,6 +119,15 @@ def run_classification_on_ds(model, cv, input_path, output_path):
     for input, output in zip(input_paths, output_paths):
         task_results = run_classification_on_df(model, cv, input, output)
         tasks_results.append(task_results)
+
+    # Get best performing task based on defined metric
+    best_task = max([metrics[BEST_TASK_METRIC] for metrics in tasks_results])
+    best_task_index = [metrics[BEST_TASK_METRIC] for metrics in tasks_results].index(best_task)
+    task_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
+    print("Best performing task for {} was T{} with {:.1f}% {}".format(input_path,
+                                                                   best_task_index,
+                                                                   best_task,
+                                                                   task_metric))
 
 # Main function
 def main():
