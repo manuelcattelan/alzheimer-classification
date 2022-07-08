@@ -1,10 +1,13 @@
 from pathlib import Path
+import re
 import argparse
 import pandas as pd
 import numpy as np
 import glob
 import os
 
+# Default output directory
+DEFAULT_OUTPUT_DIR = "data/processed/"
 # Column range holding features that need to be normalized (numeric features)
 TO_NORMALIZE_FEATURES_RANGE = np.r_[ 1:87, 88, 90 ]
 # Column range holding features that need to be filtered out (could contain only 0s)
@@ -87,6 +90,23 @@ def cleanse_data(input_to_cleanse, output_path):
     # Export preprocessed data
     export_data(df_mapped, output_path)
 
+# Helper function to build correct output string for an input file
+def build_output_path(input_flag, output_flag):
+    # Extract input source (last folder before filename) and filename
+    input_source = os.path.basename(os.path.dirname(input_flag))
+    input_filename = os.path.basename(input_flag)
+
+    # Create output directory with input source if it does not exist
+    output_dir = Path(os.path.dirname(output_flag))
+    output_dir = output_dir / input_source
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create output path by joining new output directory with input filename
+    output_path = output_dir / input_filename
+
+    # Return final output path
+    return output_path
+
 # Export df as .csv file
 def export_data(df_to_export, export_path):
     # Export file using path specified with -o flag
@@ -95,49 +115,49 @@ def export_data(df_to_export, export_path):
 # Main function
 def main():
     # Set up parser
-    parser = argparse.ArgumentParser(description="Python script used to preprocess raw data for classification",
-                                     formatter_class = argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="build_data.py",
+                                     formatter_class=argparse.RawTextHelpFormatter)
     # Add possible cli arguments to parser
-    parser.add_argument("-i", help = "Input file to read in .csv format")
-    parser.add_argument("-o", help = "Output file to write in .csv format")
+    action = parser.add_mutually_exclusive_group(required=True)
+    action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
+    action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
+    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved (default is /data/processed/<input_source>/)")
+
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
-    args = vars(args)
+
     # Store cli arguments
-    input_path = args['i']
-    output_path = args['o']
-    
-    # Create output directory if it does not exist
-    output_file_dir = Path(os.path.dirname(output_path))
-    output_file_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Check whether input and output arguments are file or directory
-    input_is_file = os.path.isfile(input_path)
-    input_is_dir = os.path.isdir(input_path)
-    output_is_dir = os.path.isdir(output_path)
+    input_file = args.f
+    input_dir = args.d
+    output_dir = args.o if args.o else DEFAULT_OUTPUT_DIR
 
-    # If given -i argument is a file, preprocess it
-    if (input_is_file and not(output_is_dir)):
-        # Define input/output variables to use as function arguments
-        input_file = input_path
-        output_file = output_path
+    # If file flag is set
+    if input_file:
+        # Check if given arguments are valid (input is file and output is dir)
+        input_is_file = os.path.isfile(input_file)
 
-        # Preprocess input and export it to output
-        cleanse_data(input_file, output_file)
-
-    # If given -i argument is a directory, preprocess every .csv inside it
-    if (input_is_dir and output_is_dir):
-        # List of filepaths for each file inside input dir
-        input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
-        # List of filenames only inside input dir
-        input_file_names = [ os.path.basename(input_path) for input_path in input_paths]
-        # List of filepaths for each file inside output dir
-        output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
-
-        # For each file in input dir, read it, preprocess it and export it
-        for input_file, output_file in zip(input_paths, output_paths):
-            # Preprocess input and export it to output
-            cleanse_data(input_file, output_file)
+        # If conditions are met build data
+        if (input_is_file):
+            # Build output path
+            output_path = build_output_path(input_file, output_dir)
+            # Cleanse and export data
+            cleanse_data(input_file, output_path)
+        
+    # if directory flag is set
+    if input_dir:
+        # Check if given arguments are valid (input is dir and output is dir)
+        input_is_dir = os.path.isdir(args.d)
+        
+        # If conditions are met build data
+        if (input_is_dir):
+            # List of filepaths for each file inside input dir
+            input_files = sorted(glob.glob(os.path.join(input_dir, '*.csv')))
+            # For each input file, build output path and export processed data
+            output_paths = [ build_output_path(input_file, output_dir) for input_file in input_files ]
+            # For each input file and corresponding output path
+            for input_file, output_path in zip(input_files, output_paths):
+                # Preprocess input and export it to output path
+                cleanse_data(input_file, output_path)
 
 # Main loop
 if __name__ == "__main__":
