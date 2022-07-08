@@ -142,6 +142,8 @@ def main():
             output_path = build_output_path(input_file, output_dir)
             # Cleanse and export data
             cleanse_data(input_file, output_path)
+        else:
+            raise ValueError('specified input is not a file')
         
     # if directory flag is set
     if input_dir:
@@ -158,7 +160,8 @@ def main():
             for input_file, output_path in zip(input_files, output_paths):
                 # Preprocess input and export it to output path
                 cleanse_data(input_file, output_path)
-
+        else:
+            raise ValueError('specified input is not a directory')
 # Main loop
 if __name__ == "__main__":
     main()
