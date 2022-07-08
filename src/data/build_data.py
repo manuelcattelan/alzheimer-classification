@@ -12,7 +12,7 @@ TO_CLEAN_FEATURES_RANGE = np.r_[ 1:86 ]
 # Separator character used to read input data
 SEP = "," 
 
-# Drop erroneous data acquisition rows by checking rows with all 0 values
+# Drop erroneous acquisitions by checking rows with only 0-values
 def clean_data(df_to_clean):
     # Create copy of dataframe given as parameter
     df_to_clean = df_to_clean.copy()
@@ -72,6 +72,21 @@ def map_data(df_to_map):
     # Return correctly mapped dataframe
     return df_mapped
 
+# Complete set of preprocessing operations
+def cleanse_data(input_to_cleanse, output_path):
+    # Read input data
+    df_raw = pd.read_csv(input_to_cleanse, sep=SEP, converters={'Sex': str.strip,
+                                                     'Work': str.strip,
+                                                     'Label': str.strip})
+    # Clean input data
+    df_cleaned = clean_data(df_raw) 
+    # Normalize input data
+    df_normalized = normalize_data(df_cleaned)
+    # Map input data
+    df_mapped = map_data(df_normalized)
+    # Export preprocessed data
+    export_data(df_mapped, output_path)
+
 # Export df as .csv file
 def export_data(df_to_export, export_path):
     # Export file using path specified with -o flag
@@ -101,42 +116,28 @@ def main():
     input_is_dir = os.path.isdir(input_path)
     output_is_dir = os.path.isdir(output_path)
 
+    # If given -i argument is a file, preprocess it
     if (input_is_file and not(output_is_dir)):
-        # Read input data
-        df_raw = pd.read_csv(input_path, sep=SEP, converters={'Sex': str.strip,
-                                                         'Work': str.strip,
-                                                         'Label': str.strip})
-        # Clean input data
-        df_cleaned = clean_data(df_raw) 
-        # Normalize input data
-        df_normalized = normalize_data(df_cleaned)
-        # Map input data
-        df_mapped = map_data(df_normalized)
-        # Export preprocessed data
-        export_data(df_mapped, output_path)
+        # Define input/output variables to use as function arguments
+        input_file = input_path
+        output_file = output_path
 
+        # Preprocess input and export it to output
+        cleanse_data(input_file, output_file)
+
+    # If given -i argument is a directory, preprocess every .csv inside it
     if (input_is_dir and output_is_dir):
-        # List of paths for each file inside input dir
+        # List of filepaths for each file inside input dir
         input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
         # List of filenames only inside input dir
         input_file_names = [ os.path.basename(input_path) for input_path in input_paths]
-        # List of paths for each file inside output dir
+        # List of filepaths for each file inside output dir
         output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
 
-        # For each file in input dir, read it, preprocess it
+        # For each file in input dir, read it, preprocess it and export it
         for input_file, output_file in zip(input_paths, output_paths):
-            # Read input data
-            df_raw = pd.read_csv(input_file, sep=SEP, converters={'Sex': str.strip,
-                                                             'Work': str.strip,
-                                                             'Label': str.strip})
-            # Clean input data
-            df_cleaned = clean_data(df_raw) 
-            # Normalize input data
-            df_normalized = normalize_data(df_cleaned)
-            # Map input data
-            df_mapped = map_data(df_normalized)
-            # Export preprocessed data
-            export_data(df_mapped, output_file)
+            # Preprocess input and export it to output
+            cleanse_data(input_file, output_file)
 
 # Main loop
 if __name__ == "__main__":
