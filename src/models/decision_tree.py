@@ -2,6 +2,7 @@ from sklearn import tree
 from sklearn.base import clone
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
 from pathlib import Path
 import time
 import numpy as np
@@ -10,6 +11,8 @@ import argparse
 import glob
 import os
 
+# Default results dir
+DEFAULT_OUTPUT_DIR = "results/"
 # Metric used to evaluate best task (0: accuracy, 1: precision, 2: recall)
 BEST_TASK_METRIC = 0
 # Features range used by the model to make classification
@@ -46,7 +49,7 @@ def test_model(model, X, y, test_index):
     return y_test, y_pred
 
 # Run classification on dataframe
-def run_classification_on_df(model, cv, input, output):
+def run_classification_on_df(model, cv, input, output, mode):
     # Read file and store it as df
     df = pd.read_csv(input, sep=SEP)
 
@@ -94,79 +97,115 @@ def run_classification_on_df(model, cv, input, output):
     # Convert binary labels to original string labels
     labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
 
-    # Write results to corresponding task file
-    with open(output, 'w') as f:
-        print("{}". format(pd.DataFrame(task_conf_matrix, index=labels, columns=labels)), file=f)
-        print("Accuracy: {:.1f}%".format(task_accuracy), file=f)
-        print("Precision: {:.1f}%".format(task_precision), file=f)
-        print("Recall: {:.1f}%".format(task_recall), file=f)
-        print("Time: {:.3f}s".format(task_time), file=f)
-        f.close()
-
+    # Return tuple containing task performance
     return (task_accuracy, task_precision, task_recall)
 
 # Run classification on df list
 def run_classification_on_ds(model, cv, input_path, output_path):
     # List of names for each file inside input dir
     input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
-    input_file_names = [ os.path.basename(input_path) for input_path in input_paths]
-    output_paths = [ os.path.join(output_path, file_name) for file_name in input_file_names ]
+    output_paths = [ build_output_path(input_path, output_path) for input_path in input_paths]
 
     # List of results for each task
     tasks_results = []
 
     # For each df in list, run classification on it and print results to corresponding output file
     for input, output in zip(input_paths, output_paths):
-        task_results = run_classification_on_df(model, cv, input, output)
+        task_results = run_classification_on_df(model, cv, input, output, mode='dir')
         tasks_results.append(task_results)
 
     # Get best performing task based on defined metric
     best_task = max([metrics[BEST_TASK_METRIC] for metrics in tasks_results])
     best_task_index = [metrics[BEST_TASK_METRIC] for metrics in tasks_results].index(best_task)
     task_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
+    # Print best performing task info
     print("Best performing task for {} was T{} with {:.1f}% {}".format(input_path,
-                                                                   best_task_index,
-                                                                   best_task,
-                                                                   task_metric))
+                                                                       best_task_index,
+                                                                       best_task,
+                                                                       task_metric))
+
+# Helper function to build correct output string for an input file
+def build_output_path(input_path, output_path):
+    # Get path extension if present
+    path_extension = (os.path.splitext(output_path))[1]
+    # If path has an extension, throw error because it does not describe a dir path
+    if path_extension != '':
+        raise ValueError('specified output is not a directory')
+
+    # Extract input source (last folder before filename) and filename
+    input_source = os.path.basename(os.path.dirname(input_path))
+    input_filename = os.path.basename(input_path)
+
+    # Create output directory with input source if it does not exist
+    output_dir = Path(os.path.dirname(output_path))
+    output_dir = output_dir / input_source
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create output path by joining new output directory with input filename
+    output_path = output_dir / input_filename
+
+    # Return final output path
+    return output_path
 
 # Main function
 def main():
     # Set up parser
-    parser = argparse.ArgumentParser(description="Decision tree classifier",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(prog="decision_tree.py",
+                                     formatter_class=argparse.RawTextHelpFormatter)
     # Add possible cli arguments to parser
-    parser.add_argument("-i", help="Input to read in .csv format")
-    parser.add_argument("-o", help="Output to write in .csv format")
+    action = parser.add_mutually_exclusive_group(required=True)
+    # -f flag and -d flag are mutually exclusive and necessary
+    action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
+    action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
+    # -o flag is optional and default value is declared as constant
+    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved (default is /data/processed/<input_source>/)")
+
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
-    args = vars(args)
+
     # Store cli arguments
-    input_path = args['i']
-    output_path = args['o']
+    input_file = args.f
+    input_dir = args.d
+    # If output flag is defined, use it's argument as output_dir, else use default constant
+    output_dir = args.o if args.o else DEFAULT_OUTPUT_DIR
 
-    # Create output directory if it does not exist
-    output_file_dir = Path(os.path.dirname(output_path))
-    output_file_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Check whether input and output arguments are file or directory
-    input_is_file = os.path.isfile(input_path)
-    input_is_dir = os.path.isdir(input_path)
-    output_is_dir = os.path.isdir(output_path)
+    # If file flag is set
+    if input_file:
+        # Check if given arguments are valid (input is file and output is dir)
+        input_is_file = os.path.isfile(input_file)
 
-    # Initialize classifier
-    decision_tree = tree.DecisionTreeClassifier(criterion='entropy')
-    # Initialize cross validator
-    cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
+        # If conditions are met build data
+        if (input_is_file):
+            # Initialize classifier
+            decision_tree = tree.DecisionTreeClassifier(criterion='entropy')
+            # Initialize cross validator
+            cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
+            # Build output path
+            output_path = build_output_path(input_file, output_dir)
+            # Run classification on single file
+            run_classification_on_df(decision_tree, cross_validator, input_file, output_path, mode='file')
+        # If input is not a directory
+        else:
+            # Raise exception
+            raise ValueError('specified input is not a file')
 
-    # If input argument is a file, only run classification on that file
-    if (input_is_file and not(output_is_dir)):
-        # Run classification on single file
-        run_classification_on_df(decision_tree, cross_validator, input_path, output_path)
-            
-    # If input argument is a folder, run classification on every file inside the folder
-    if (input_is_dir and output_is_dir):
-        # Run classification on all files inside directory
-        run_classification_on_ds(decision_tree, cross_validator, input_path, output_path)
+    # if directory flag is set
+    if input_dir:
+        # Check if given arguments are valid (input is dir and output is dir)
+        input_is_dir = os.path.isdir(args.d)
+        
+        # If conditions are met build data
+        if (input_is_dir):
+            # Initialize classifier
+            decision_tree = tree.DecisionTreeClassifier(criterion='entropy')
+            # Initialize cross validator
+            cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
+            # Run classification on all files inside directory
+            run_classification_on_ds(decision_tree, cross_validator, input_dir, output_dir)
+        # If input is not a directory
+        else:
+            # Raise exception
+            raise ValueError('specified input is not a directory')
 
 # Main loop
 if __name__ == "__main__":
