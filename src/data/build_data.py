@@ -91,13 +91,19 @@ def cleanse_data(input_to_cleanse, output_path):
     export_data(df_mapped, output_path)
 
 # Helper function to build correct output string for an input file
-def build_output_path(input_flag, output_flag):
-    # Extract input source (last folder before filename) and filename
-    input_source = os.path.basename(os.path.dirname(input_flag))
-    input_filename = os.path.basename(input_flag)
+def build_output_path(input_path, output_path):
+    # Get path extension if present
+    path_extension = (os.path.splitext(output_path))[1]
+    # If path has an extension, throw error because it does not describe a dir path
+    if path_extension != '':
+        raise ValueError('specified output is not a directory')
 
-    # Create output directory with input source if it does not exist
-    output_dir = Path(os.path.dirname(output_flag))
+    # Extract input source (last folder before filename) and filename
+    input_source = os.path.basename(os.path.dirname(input_path))
+    input_filename = os.path.basename(input_path)
+
+    # Create output directory by joining initial output directory with input source
+    output_dir = Path(os.path.dirname(output_path))
     output_dir = output_dir / input_source
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -110,7 +116,7 @@ def build_output_path(input_flag, output_flag):
 # Export df as .csv file
 def export_data(df_to_export, export_path):
     # Export file using path specified with -o flag
-    df_to_export.to_csv(export_path, index = False)
+    df_to_export.to_csv(export_path, index=False)
 
 # Main function
 def main():
@@ -119,8 +125,10 @@ def main():
                                      formatter_class=argparse.RawTextHelpFormatter)
     # Add possible cli arguments to parser
     action = parser.add_mutually_exclusive_group(required=True)
+    # -f flag and -d flag are mutually exclusive
     action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
     action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
+    # -o flag is optional and default value is declared as constant
     parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved (default is /data/processed/<input_source>/)")
 
     # Parse cli arguments and store them in variable 'args'
@@ -129,6 +137,7 @@ def main():
     # Store cli arguments
     input_file = args.f
     input_dir = args.d
+    # If output flag is defined, use it's argument as output_dir, else use default constant
     output_dir = args.o if args.o else DEFAULT_OUTPUT_DIR
 
     # If file flag is set
@@ -142,7 +151,9 @@ def main():
             output_path = build_output_path(input_file, output_dir)
             # Cleanse and export data
             cleanse_data(input_file, output_path)
+        # If input is not file
         else:
+            # Raise exception
             raise ValueError('specified input is not a file')
         
     # if directory flag is set
@@ -160,8 +171,11 @@ def main():
             for input_file, output_path in zip(input_files, output_paths):
                 # Preprocess input and export it to output path
                 cleanse_data(input_file, output_path)
+        # If input is not a directory
         else:
+            # Raise exception
             raise ValueError('specified input is not a directory')
+
 # Main loop
 if __name__ == "__main__":
     main()
