@@ -1,46 +1,46 @@
 # Makefile
 
-# Environmental variables from commandline
-# default input data is the entire raw folder
-# default models to run are all
-input?=${dir ${wildcard data/raw/*/}}
-models?=all
-
 # project directories
-raw_dir=data/raw/
-processed_dir=data/processed/
-results_dir=results/
-scripts_dir=src/
+DEFAULT_RAW_DIR = data/raw/
+DEFAULT_PROCESSED_DIR = data/processed/
+DEFAULT_RESULTS_DIR = results/
+DEFAULT_SCRIPTS_DIR = src/
 
-# raw input data name (either file or directory)
-input_data=$(input)
-# preprocessed input data name (either file or folder)
-preprocessed_data=$(input_data:$(raw_dir)%=$(processed_dir)%)
-# results input data name (either file or folder)
-results_data=$(preprocessed_data:$(processed_dir)%=$(results_dir)%)
+# either default or user-defined input path
+ifndef INPUT
+INPUT=$(dir ${wildcard ${DEFAULT_RAW_DIR}*/})
+endif
 
-# create directory for processed data
-$(shell mkdir -p ${dir ${preprocessed_data}})
-# create directory for results data
-$(shell mkdir -p ${dir ${results_data}})
+# either default or user-defined output path
+ifndef OUTPUT
+OUTPUT=$(DEFAULT_RESULTS_DIR)
+endif
 
-.PHONY: all $(preprocessed_data) $(results_data)
+PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(DEFAULT_PROCESSED_DIR)%)
+RESULTS_DATA = $(PROCESSED_DATA:$(DEFAULT_PROCESSED_DIR)%=$(OUTPUT)%)
 
-# build processed data and run classification on it
-all: $(preprocessed_data) $(results_data) 
+.PHONY: all clean $(PROCESSED_DATA) $(RESULTS_DATA)
 
-# run preprocessing on raw data and store results in processed directory
-$(preprocessed_data): $(processed_dir)%:$(raw_dir)% $(scripts_dir)data/build_data.py
-	@python3 $(scripts_dir)data/build_data.py -i $< -o $@
+all: $(PROCESSED_DATA) $(RESULTS_DATA)
 
-# run classification on processed data and store results in results directory
-$(results_data): $(results_dir)%:$(processed_dir)% $(scripts_dir)models/decision_tree.py
-	@python3 $(scripts_dir)models/decision_tree.py -i $< -o $@
+$(PROCESSED_DATA):$(DEFAULT_PROCESSED_DIR)%:$(DEFAULT_RAW_DIR)%
+	@if [ -f $< ]; then \
+		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $<; \
+	elif [ -d $< ]; then \
+		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $<; \
+	fi
+
+$(RESULTS_DATA):$(OUTPUT)%:$(DEFAULT_PROCESSED_DIR)%
+	@if [ -f $< ]; then \
+		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT); \
+	elif [ -d $< ]; then \
+		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -d $< -o $(OUTPUT); \
+	fi
 
 # clean intermediary (processed) files and results folder
 clean:
-	@echo "Cleaning $(processed_dir) folder..."
-	@rm -rf $(processed_dir)
-	@echo "Cleaning $(results_dir) folder..."
-	@rm -rf $(results_dir)
+	@echo "Cleaning $(DEFAULT_PROCESSED_DIR) folder..."
+	@rm -rf $(DEFAULT_PROCESSED_DIR)
+	@echo "Cleaning $(OUTPUT) folder..."
+	@rm -rf $(OUTPUT)
 	@echo "Done!"
