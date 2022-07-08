@@ -125,7 +125,7 @@ def main():
                                      formatter_class=argparse.RawTextHelpFormatter)
     # Add possible cli arguments to parser
     action = parser.add_mutually_exclusive_group(required=True)
-    # -f flag and -d flag are mutually exclusive
+    # -f flag and -d flag are mutually exclusive and necessary
     action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
     action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
     # -o flag is optional and default value is declared as constant
