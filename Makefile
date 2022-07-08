@@ -24,14 +24,10 @@ $(shell mkdir -p ${dir ${preprocessed_data}})
 # create directory for results data
 $(shell mkdir -p ${dir ${results_data}})
 
-.PHONY: all data classify $(preprocessed_data) $(results_data)
+.PHONY: all $(preprocessed_data) $(results_data)
 
 # build processed data and run classification on it
 all: $(preprocessed_data) $(results_data) 
-
-# build processed data only
-data: $(preprocessed_data)
-	@rm -rf $(results_dir)
 
 # run preprocessing on raw data and store results in processed directory
 $(preprocessed_data): $(processed_dir)%:$(raw_dir)% $(scripts_dir)data/build_data.py
