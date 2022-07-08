@@ -11,8 +11,6 @@ import argparse
 import glob
 import os
 
-# Default results dir
-DEFAULT_OUTPUT_DIR = "results/"
 # Metric used to evaluate best task (0: accuracy, 1: precision, 2: recall)
 BEST_TASK_METRIC = 0
 # Features range used by the model to make classification
@@ -97,6 +95,13 @@ def run_classification_on_df(model, cv, input, output, mode):
     # Convert binary labels to original string labels
     labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
 
+    # If running single file classification, print task results
+    if (mode == 'file'):
+        print("Performance results for {}:".format((os.path.basename(input))))
+        print(" - Accuracy: {:.1f}%".format(task_accuracy))
+        print(" - Precision: {:.1f}%".format(task_precision))
+        print(" - Recall: {:.1f}%".format(task_recall))
+
     # Return tuple containing task performance
     return (task_accuracy, task_precision, task_recall)
 
@@ -119,7 +124,7 @@ def run_classification_on_ds(model, cv, input_path, output_path):
     best_task_index = [metrics[BEST_TASK_METRIC] for metrics in tasks_results].index(best_task)
     task_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
     # Print best performing task info
-    print("Best performing task for {} was T{} with {:.1f}% {}".format(input_path,
+    print("Best performing task for {} was T{}, with {:.1f}% {}".format(input_path,
                                                                        best_task_index,
                                                                        best_task,
                                                                        task_metric))
@@ -166,8 +171,7 @@ def main():
     # Store cli arguments
     input_file = args.f
     input_dir = args.d
-    # If output flag is defined, use it's argument as output_dir, else use default constant
-    output_dir = args.o if args.o else DEFAULT_OUTPUT_DIR
+    output_dir = args.o
 
     # If file flag is set
     if input_file:
@@ -184,6 +188,7 @@ def main():
             output_path = build_output_path(input_file, output_dir)
             # Run classification on single file
             run_classification_on_df(decision_tree, cross_validator, input_file, output_path, mode='file')
+
         # If input is not a directory
         else:
             # Raise exception
@@ -202,6 +207,7 @@ def main():
             cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
             # Run classification on all files inside directory
             run_classification_on_ds(decision_tree, cross_validator, input_dir, output_dir)
+
         # If input is not a directory
         else:
             # Raise exception
