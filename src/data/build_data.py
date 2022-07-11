@@ -78,25 +78,23 @@ def map_data(df_to_map):
 def cleanse_data(input_to_cleanse, output_path):
     # Read input data
     df_raw = pd.read_csv(input_to_cleanse, sep=SEP, converters={'Sex': str.strip,
-                                                     'Work': str.strip,
-                                                     'Label': str.strip})
+        'Work': str.strip,
+        'Label': str.strip})
+    # Build output path to export processed data
+    built_output_path = build_output_path(input_to_cleanse, output_path)
+
     # Clean input data
     df_cleaned = clean_data(df_raw) 
     # Normalize input data
     df_normalized = normalize_data(df_cleaned)
     # Map input data
     df_mapped = map_data(df_normalized)
+
     # Export preprocessed data
-    export_data(df_mapped, output_path)
+    export_data(df_mapped, built_output_path)
 
 # Helper function to build correct output string for an input file
 def build_output_path(input_path, output_path):
-    # Get path extension if present
-    path_extension = (os.path.splitext(output_path))[1]
-    # If path has an extension, throw error because it does not describe a dir path
-    if path_extension != '':
-        raise ValueError('specified output is not a directory')
-
     # Extract input source (last folder before filename) and filename
     input_source = os.path.basename(os.path.dirname(input_path))
     input_filename = os.path.basename(input_path)
@@ -112,9 +110,9 @@ def build_output_path(input_path, output_path):
     # Return final output path
     return output_path
 
-# Export df as .csv file
+# Helper function to export df as .csv file
 def export_data(df_to_export, export_path):
-    # Export file using path specified with -o flag
+    # Export processed df using built datapath defined from -o flag argument
     df_to_export.to_csv(export_path, index=False)
 
 # Main function
@@ -127,49 +125,51 @@ def main():
     # -f flag and -d flag are mutually exclusive and necessary
     action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
     action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
-    # -o flag is optional and default value is declared as constant
-    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved (default is /data/processed/<input_source>/)")
+    # -o flag defines output path to where classification results are stored and is necessary
+    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved", required=True)
 
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
 
-    # Store cli arguments
-    input_file = args.f
-    input_dir = args.d
-    # If output flag is defined, use it's argument as output_dir, else use default constant
-    output_dir = args.o if args.o else DEFAULT_OUTPUT_DIR
+    # Store -o flag and check its validity
+    output_path = args.o
+    # Get output path extension (empty if not present)
+    output_path_extension = (os.path.splitext(output_path))[1]
+    # If output path has an extension, throw error because it does not define a dir path
+    if output_path_extension != '':
+        raise ValueError('specified output is not a directory')
 
     # If file flag is set
-    if input_file:
-        # Check if given arguments are valid (input is file and output is dir)
-        input_is_file = os.path.isfile(input_file)
+    if args.f:
+        # Store -f flag
+        input_path = args.f
+        # Check if given argument is valid (input is file)
+        input_is_file = os.path.isfile(input_path)
 
-        # If conditions are met build data
+        # If input argument is valid, build processed data
         if (input_is_file):
-            # Build output path
-            output_path = build_output_path(input_file, output_dir)
             # Cleanse and export data
-            cleanse_data(input_file, output_path)
+            cleanse_data(input_path, output_path)
         # If input is not file
         else:
             # Raise exception
             raise ValueError('specified input is not a file')
-        
+
     # if directory flag is set
-    if input_dir:
-        # Check if given arguments are valid (input is dir and output is dir)
+    if args.d:
+        # Store -d flag
+        input_path = args.d 
+        # Check if given argument is valid (input is directory)
         input_is_dir = os.path.isdir(args.d)
-        
-        # If conditions are met build data
+
+        # If input argument is valid, build processed data
         if (input_is_dir):
             # List of filepaths for each file inside input dir
-            input_files = sorted(glob.glob(os.path.join(input_dir, '*.csv')))
-            # For each input file, build output path and export processed data
-            output_paths = [ build_output_path(input_file, output_dir) for input_file in input_files ]
+            input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv')))
             # For each input file and corresponding output path
-            for input_file, output_path in zip(input_files, output_paths):
+            for input_path in input_paths:
                 # Preprocess input and export it to output path
-                cleanse_data(input_file, output_path)
+                cleanse_data(input_path, output_path)
         # If input is not a directory
         else:
             # Raise exception
