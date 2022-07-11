@@ -71,10 +71,12 @@ def run_classification_on_df(model, cv, input, output, mode):
 
     # For each split, train and test model, then store results
     for train_index, test_index in cv.split(X, y):
+        # Get trained model
         trained_model = train_model(model, X, y, train_index)
+        # Get expected and obtained results from testing
         model_actual, model_predicted = test_model(trained_model, X, y, test_index)
 
-        # Compute confusion matrix on prediction and append it to splits matrices list
+        # Compute confusion matrix on predictions and append it to results list
         split_conf_matrix = confusion_matrix(model_actual, model_predicted, labels=labels)
         split_conf_matrices.append(split_conf_matrix)
 
@@ -87,7 +89,7 @@ def run_classification_on_df(model, cv, input, output, mode):
     task_conf_matrix = sum(matrix for matrix in split_conf_matrices)
     tn, fp, fn, tp = task_conf_matrix.ravel()
 
-    # Compute performance metrics from confusion matrix
+    # Compute performance metrics from final confusion matrix
     task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
     task_precision = (tp / (tp + fp) * 100)
     task_recall = (tp / (tp + fn) * 100)
@@ -98,12 +100,12 @@ def run_classification_on_df(model, cv, input, output, mode):
     # If running single file classification, print task results
     if (mode == 'file'):
         print("Performance results for {}:".format((os.path.basename(input))))
-        print(" - Accuracy: {:.1f}%".format(task_accuracy))
-        print(" - Precision: {:.1f}%".format(task_precision))
-        print(" - Recall: {:.1f}%".format(task_recall))
+        print("- Accuracy: {:.1f}%".format(task_accuracy))
+        print("- Precision: {:.1f}%".format(task_precision))
+        print("- Recall: {:.1f}%".format(task_recall))
 
     # Return tuple containing task performance
-    return (task_accuracy, task_precision, task_recall)
+    return (task_accuracy, task_precision, task_recall, task_time)
 
 # Run classification on df list
 def run_classification_on_ds(model, cv, input_path, output_path):
@@ -116,18 +118,23 @@ def run_classification_on_ds(model, cv, input_path, output_path):
 
     # For each df in list, run classification on it and print results to corresponding output file
     for input, output in zip(input_paths, output_paths):
+        # Run classification on each file from input directory
         task_results = run_classification_on_df(model, cv, input, output, mode='dir')
+        # Store results in results list
         tasks_results.append(task_results)
 
     # Get best performing task based on defined metric
-    best_task = max([metrics[BEST_TASK_METRIC] for metrics in tasks_results])
-    best_task_index = [metrics[BEST_TASK_METRIC] for metrics in tasks_results].index(best_task)
+    best_task = max([results[BEST_TASK_METRIC] for results in tasks_results])
+    best_task_index = [results[BEST_TASK_METRIC] for results in tasks_results].index(best_task)
+    best_task_time = sum(results[3] for results in tasks_results)
     task_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
+
     # Print best performing task info
-    print("Best performing task for {} was T{}, with {:.1f}% {}".format(input_path,
-                                                                       best_task_index,
-                                                                       best_task,
-                                                                       task_metric))
+    print("Best performing task for {} was T{}, with {:.1f}% {} (elapsed time: {:.3f}s)".format(input_path,
+                                                                                   best_task_index,
+                                                                                   best_task,              
+                                                                                   task_metric,
+                                                                                   best_task_time))
 
 # Helper function to build correct output string for an input file
 def build_output_path(input_path, output_path):
@@ -163,7 +170,7 @@ def main():
     action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
     action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
     # -o flag is optional and default value is declared as constant
-    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved (default is /data/processed/<input_source>/)")
+    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved")
 
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
