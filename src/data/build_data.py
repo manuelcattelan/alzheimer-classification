@@ -143,7 +143,6 @@ def main():
         input_path = args.f
         # Check if given argument is valid (input is file)
         input_is_file = os.path.isfile(input_path)
-
         # If input argument is valid, build processed data
         if (input_is_file):
             # Cleanse and export data
@@ -159,7 +158,6 @@ def main():
         input_path = args.d 
         # Check if given argument is valid (input is directory)
         input_is_dir = os.path.isdir(args.d)
-
         # If input argument is valid, build processed data
         if (input_is_dir):
             # List of filepaths for each file inside input dir
