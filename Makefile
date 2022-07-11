@@ -19,21 +19,25 @@ endif
 PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(DEFAULT_PROCESSED_DIR)%)
 RESULTS_DATA = $(PROCESSED_DATA:$(DEFAULT_PROCESSED_DIR)%=$(OUTPUT)%)
 
-.PHONY: all clean $(PROCESSED_DATA) $(RESULTS_DATA)
+.PHONY: all clean $(RESULTS_DATA)
 
 all: $(PROCESSED_DATA) $(RESULTS_DATA)
 
 $(PROCESSED_DATA):$(DEFAULT_PROCESSED_DIR)%:$(DEFAULT_RAW_DIR)%
 	@if [ -f $< ]; then \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $<'; \
 		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $<; \
 	elif [ -d $< ]; then \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $<'; \
 		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $<; \
 	fi
 
 $(RESULTS_DATA):$(OUTPUT)%:$(DEFAULT_PROCESSED_DIR)%
 	@if [ -f $< ]; then \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT)'; \
 		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT); \
 	elif [ -d $< ]; then \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -d $< -o $(OUTPUT)'; \
 		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -d $< -o $(OUTPUT); \
 	fi
 
