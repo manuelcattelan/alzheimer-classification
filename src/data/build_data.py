@@ -10,7 +10,7 @@ TO_NORMALIZE_FEATURES_RANGE = np.r_[ 1:87, 88, 90 ]
 # Column range holding features that need to be filtered out (could contain only 0s)
 TO_CLEAN_FEATURES_RANGE = np.r_[ 1:86 ]
 # Separator character used to read input data
-SEP = "," 
+SEP = ','
 
 # Drop erroneous acquisitions by checking rows with only 0-values
 def clean_data(df_to_clean):
@@ -76,22 +76,21 @@ def map_data(df_to_map):
 def cleanse_data(input_to_cleanse, output_path):
     # Read input data
     df_raw = pd.read_csv(input_to_cleanse, sep=SEP, converters={'Sex': str.strip,
-        'Work': str.strip,
-        'Label': str.strip})
+                                                                'Work': str.strip,
+                                                                'Label': str.strip})
+
     # Build output path to export processed data
     built_output_path = build_output_path(input_to_cleanse, output_path)
 
-    # Clean input data
+    # Preprocess input data
     df_cleaned = clean_data(df_raw) 
-    # Normalize input data
     df_normalized = normalize_data(df_cleaned)
-    # Map input data
     df_mapped = map_data(df_normalized)
 
     # Export preprocessed data
     export_data(df_mapped, built_output_path)
 
-# Helper function to build correct output string for an input file
+# Helper function to build correct output path for an input file
 def build_output_path(input_path, output_path):
     # Extract input source (last folder before filename) and filename
     input_source = os.path.basename(os.path.dirname(input_path))
@@ -121,10 +120,20 @@ def main():
     # Add possible cli arguments to parser
     action = parser.add_mutually_exclusive_group(required=True)
     # -f flag and -d flag are mutually exclusive and necessary
-    action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
-    action.add_argument('-d', type=str, metavar='<input_folder>', help="input directory from which to take .csv <input_file>s to build")
+    action.add_argument('-f',
+                        type=str,
+                        metavar='<input_file>',
+                        help="input .csv file to build")
+    action.add_argument('-d',
+                        type=str,
+                        metavar='<input_folder>',
+                        help="input directory from which to take .csv <input_file>s to build")
     # -o flag defines output path to where classification results are stored and is necessary
-    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved", required=True)
+    parser.add_argument('-o',
+                        type=str,
+                        metavar='<output_folder>',
+                        help="output directory where built data is saved",
+                        required=True)
 
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
@@ -145,7 +154,6 @@ def main():
         input_is_file = os.path.isfile(input_path)
         # If input argument is valid, build processed data
         if (input_is_file):
-            # Cleanse and export data
             cleanse_data(input_path, output_path)
         # If input is not file
         else:
@@ -162,9 +170,8 @@ def main():
         if (input_is_dir):
             # List of filepaths for each file inside input dir
             input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv')))
-            # For each input file and corresponding output path
+            # For each input file and corresponding output path, build processed data
             for input_path in input_paths:
-                # Preprocess input and export it to output path
                 cleanse_data(input_path, output_path)
         # If input is not a directory
         else:
