@@ -5,6 +5,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from pathlib import Path
 import time
+import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import pandas as pd
 import argparse
@@ -45,6 +47,43 @@ def test_model(model, X, y, test_index):
 
     # Return model test data and corresponding predictions
     return y_test, y_pred
+
+# Train model on all task data and export trained model
+def export_model(model, X, y, output_path, index):
+    # Modify output path to correctly export .png file
+    output_path = Path(output_path)
+    output_path = (output_path.with_suffix('')).with_suffix('.png')
+
+    # Train model on entire task data
+    trained_model = train_model(model, X, y, index)
+
+    # Plot trained model and export .png representation
+    tree.plot_tree(model, filled=True, rounded=True)
+    plt.savefig(output_path, bbox_inches="tight", dpi=1200)
+    plt.close()
+
+def export_confusion_matrix(cm, labels, output_path):
+    # Modify output path to correctly export .png file
+    output_path = Path(output_path)
+    output_path = (output_path.with_suffix('')).with_suffix('.png')
+    
+    # Compute performance metrics
+    tn, fp, fn, tp = cm.ravel()
+    task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
+    task_precision = (tp / (tp + fp) * 100)
+    task_recall = (tp / (tp + fn) * 100)
+    task_f1 = 2 * task_precision * task_recall / (task_precision + task_recall)
+    # Build performance text
+    performance_text = "\n\nAccuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%".format(
+            task_accuracy, task_precision, task_recall, task_f1)
+
+    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
+
+    ax = sns.heatmap(cm, annot=True, xticklabels=labels, yticklabels=labels, cmap='Blues')
+    ax.set_xlabel('\nPredicted values' + performance_text)
+    ax.set_ylabel('Actual values')
+    plt.savefig(output_path, bbox_inches="tight", dpi=400)
+    plt.close()
 
 # Run classification on dataframe
 def run_classification_on_df(model, cv, input_path, output_path, mode):
@@ -87,14 +126,10 @@ def run_classification_on_df(model, cv, input_path, output_path, mode):
     # Classification delta time 
     task_time = stop_time - start_time
 
-    # Compute final confusion matrix
+    # export_model(model, X, y, built_output_path, df.index)
+    # Compute and export total confusion matrix of task
     task_conf_matrix = sum(matrix for matrix in split_conf_matrices)
-    tn, fp, fn, tp = task_conf_matrix.ravel()
-
-    # Compute performance metrics from final confusion matrix
-    task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
-    task_precision = (tp / (tp + fp) * 100)
-    task_recall = (tp / (tp + fn) * 100)
+    export_confusion_matrix(task_conf_matrix, labels, built_output_path)
 
     # Convert binary labels to original string labels
     labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
@@ -105,6 +140,12 @@ def run_classification_on_df(model, cv, input_path, output_path, mode):
         print("- Accuracy: {:.1f}%".format(task_accuracy))
         print("- Precision: {:.1f}%".format(task_precision))
         print("- Recall: {:.1f}%".format(task_recall))
+
+    tn, fp, fn, tp = task_conf_matrix.ravel()
+    task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
+    task_precision = (tp / (tp + fp) * 100)
+    task_recall = (tp / (tp + fn) * 100)
+    task_f1 = 2 * task_precision * task_recall / (task_precision + task_recall)
 
     # Return tuple containing task performance
     return (task_accuracy, task_precision, task_recall, task_time)
@@ -136,6 +177,7 @@ def run_classification_on_ds(model, cv, input_path, output_path):
                                                                                    best_task,              
                                                                                    task_metric,
                                                                                    best_task_time))
+
 
 # Helper function to build correct output string for an input file
 def build_output_path(input_path, output_path):
