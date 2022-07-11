@@ -13,6 +13,10 @@ import argparse
 import glob
 import os
 
+# Subdirectory used for model graphs
+MODELS_DIR = 'models/dt/'
+# Subdirectory used for model performances
+PERFORMANCE_DIR = 'performance/dt/'
 # Metric used to evaluate best task (0: accuracy, 1: precision, 2: recall)
 BEST_TASK_METRIC = 0
 # Features range used by the model to make classification
@@ -49,62 +53,69 @@ def test_model(model, X, y, test_index):
     return y_test, y_pred
 
 # Train model on all task data and export trained model
-def export_model(model, X, y, output_path, index):
+def export_model(model, X, y, input_path, output_path, index):
+    # Add model directory to initial output path
+    output_path = output_path + MODELS_DIR
+    # Build output path to export results
+    built_output_path = build_output_path(input_path, output_path)
     # Modify output path to correctly export .png file
-    output_path = Path(output_path)
-    output_path = (output_path.with_suffix('')).with_suffix('.png')
+    built_output_path = Path(built_output_path)
+    built_output_path = (built_output_path.with_suffix('')).with_suffix('.png')
 
     # Train model on entire task data
     trained_model = train_model(model, X, y, index)
 
-    # Plot trained model and export .png representation
+    # Plot trained model and export its .png representation
     tree.plot_tree(model, filled=True, rounded=True)
-    plt.savefig(output_path, bbox_inches="tight", dpi=1200)
+    plt.savefig(built_output_path, bbox_inches="tight", dpi=400)
     plt.close()
 
-def export_confusion_matrix(cm, labels, output_path):
-    # Modify output path to correctly export .png file
-    output_path = Path(output_path)
-    output_path = (output_path.with_suffix('')).with_suffix('.png')
-    
-    # Compute performance metrics
-    tn, fp, fn, tp = cm.ravel()
-    task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
-    task_precision = (tp / (tp + fp) * 100)
-    task_recall = (tp / (tp + fn) * 100)
-    task_f1 = 2 * task_precision * task_recall / (task_precision + task_recall)
-    # Build performance text
-    performance_text = "\n\nAccuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%".format(
-            task_accuracy, task_precision, task_recall, task_f1)
-
-    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
-
-    ax = sns.heatmap(cm, annot=True, xticklabels=labels, yticklabels=labels, cmap='Blues')
-    ax.set_xlabel('\nPredicted values' + performance_text)
-    ax.set_ylabel('Actual values')
-    plt.savefig(output_path, bbox_inches="tight", dpi=400)
-    plt.close()
-
-# Run classification on dataframe
-def run_classification_on_df(model, cv, input_path, output_path, mode):
-    # Read file and store it as df
-    df = pd.read_csv(input_path, sep=SEP)
+# Export confusion matrix
+def export_confusion_matrix(cm, cm_performance, labels, input_path, output_path):
+    # Add performance directory to initial output path
+    output_path = output_path + PERFORMANCE_DIR
     # Build output path to export results
     built_output_path = build_output_path(input_path, output_path)
+    # Modify output path to correctly export .png file
+    built_output_path = Path(built_output_path)
+    built_output_path = (built_output_path.with_suffix('')).with_suffix('.png')
+    
+    # Build performance text
+    task_accuracy = cm_performance[0]
+    task_precision = cm_performance[1]
+    task_recall = cm_performance[2]
+    task_f1score = cm_performance[3]
+    performance_text = "\n\nAccuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%".format(task_accuracy, task_precision, task_recall, task_f1score)
 
+    # Convert binary labels to original string labels
+    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
+
+    # Build heatmap with confusion matrix
+    ax = sns.heatmap(cm, annot=True, xticklabels=labels, yticklabels=labels, cmap='Blues')
+    # Set x/y axis labels
+    ax.set_xlabel('\nPredicted values' + performance_text)
+    ax.set_ylabel('Actual values')
+    # Export heatmap to output path
+    plt.savefig(built_output_path, bbox_inches="tight", dpi=400) 
+    plt.close()
+
+# Run classification on file
+def run_classification_on_file(model, cv, input_path, output_path, mode):
     # List containing confusion matrix for each testing split
-    split_conf_matrices = []
+    split_results = []
+    
+    # Read file and store it as dataframe
+    df = pd.read_csv(input_path, sep=SEP)
 
-    # List of features for classification
+    # Feature columns used for classification
     features = df.columns[MODEL_FEATURES]
-    # Label used for classification
+    # Label column used for classification
     label = MODEL_LABEL
-
     # Subset of dataframe containing entries with feature for classification
     X = df[features]
     # Subset of dataframe containing entries with labels for classification
     y = df[label]
-    # Get unique labels from classification labels
+    # Get unique labels from set of possible labels
     labels = np.unique(y)
 
     # Classification start time
@@ -116,70 +127,76 @@ def run_classification_on_df(model, cv, input_path, output_path, mode):
         trained_model = train_model(model, X, y, train_index)
         # Get expected and obtained results from testing
         model_actual, model_predicted = test_model(trained_model, X, y, test_index)
-
-        # Compute confusion matrix on predictions and append it to results list
+        # Compute confusion matrix on predictions
         split_conf_matrix = confusion_matrix(model_actual, model_predicted, labels=labels)
-        split_conf_matrices.append(split_conf_matrix)
+        # Store split result in split results list
+        split_results.append(split_conf_matrix)
 
     # Classification stop time
     stop_time = time.time()
     # Classification delta time 
     task_time = stop_time - start_time
 
-    # export_model(model, X, y, built_output_path, df.index)
-    # Compute and export total confusion matrix of task
-    task_conf_matrix = sum(matrix for matrix in split_conf_matrices)
-    export_confusion_matrix(task_conf_matrix, labels, built_output_path)
-
-    # Convert binary labels to original string labels
-    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
-
-    # If running single file classification, print task results
-    if (mode == 'file'):
-        print("Performance results for {}:".format((os.path.basename(input_path))))
-        print("- Accuracy: {:.1f}%".format(task_accuracy))
-        print("- Precision: {:.1f}%".format(task_precision))
-        print("- Recall: {:.1f}%".format(task_recall))
-
+    # Compute task confusion matrix and performance metrics
+    task_conf_matrix = sum(matrix for matrix in split_results)
     tn, fp, fn, tp = task_conf_matrix.ravel()
-    task_accuracy = ((tp + tn) / (tp + fp + fn + tp) * 100)
+    task_accuracy = ((tp + tn) / (tp + fp + fn + tn) * 100)
     task_precision = (tp / (tp + fp) * 100)
     task_recall = (tp / (tp + fn) * 100)
-    task_f1 = 2 * task_precision * task_recall / (task_precision + task_recall)
+    task_f1score = 2 * task_precision * task_recall / (task_precision + task_recall)
+
+    # Create tuple containing task performance
+    task_performance = (task_accuracy, task_precision, task_recall, task_f1score)
+    export_model(model, X, y, input_path, output_path, df.index)
+    export_confusion_matrix(task_conf_matrix, task_performance, labels, input_path, output_path)
 
     # Return tuple containing task performance
-    return (task_accuracy, task_precision, task_recall, task_time)
+    return task_performance, task_time
 
-# Run classification on df list
-def run_classification_on_ds(model, cv, input_path, output_path):
-    # List of file paths for each file inside input directory
-    input_paths = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
-
+# Run classification on directory of files
+def run_classification_on_dir(model, cv, input_path, output_path):
     # List of results for each task
     tasks_results = []
+    # List of classification times for each task
+    tasks_times = []
 
-    # For each df in list, run classification on it and print results to corresponding output file
-    for input_path in input_paths:
+    # List of task paths for each task file inside input directory
+    tasks = sorted(glob.glob(os.path.join(input_path, '*.csv'))) 
+
+    # For each task in directory, run classification and store results
+    for task in tasks:
         # Run classification on each file from input directory
-        task_results = run_classification_on_df(model, cv, input_path, output_path, mode='dir')
+        task_results, task_time = run_classification_on_file(model, cv, task, output_path, mode='dir')
         # Store results in results list
         tasks_results.append(task_results)
+        # Store time in times list
+        tasks_times.append(task_time)
 
-    # Get best performing task based on defined metric
-    best_task = max([results[BEST_TASK_METRIC] for results in tasks_results])
-    best_task_index = [results[BEST_TASK_METRIC] for results in tasks_results].index(best_task)
-    best_task_time = sum(results[3] for results in tasks_results)
-    task_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
+    # Compute best task classification information
+    best_task_metric = max([ results[BEST_TASK_METRIC] for results in tasks_results ])
+    best_task_index = [ results[BEST_TASK_METRIC] for results in tasks_results ].index(best_task_metric)
+    best_task_time = tasks_times[best_task_index]
 
-    # Print best performing task info
-    print("Best performing task for {} was T{}, with {:.1f}% {} (elapsed time: {:.3f}s)".format(input_path,
-                                                                                   best_task_index,
-                                                                                   best_task,              
-                                                                                   task_metric,
-                                                                                   best_task_time))
+    # Obtain best task performances
+    best_task_accuracy = tasks_results[best_task_index][0] 
+    best_task_precision = tasks_results[best_task_index][1] 
+    best_task_recall = tasks_results[best_task_index][2] 
+    best_task_f1score = tasks_results[best_task_index][3]
 
+    # Classification information
+    total_classification_time = sum([ time for time in tasks_times ])
+    avg_classification_time = np.mean([ time for time in tasks_times ])
+    classification_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
 
-# Helper function to build correct output string for an input file
+    # Print classification classification results
+    print("\nDT classification on {} took: {:.3f}s (avg: {:.3f}s)"
+            .format(input_path, total_classification_time, avg_classification_time))
+    print("Best performing task (considering {}) was T{}, with the following results:"
+            .format(classification_metric, best_task_index + 1))
+    print("Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s"
+            .format(best_task_accuracy, best_task_precision, best_task_recall, best_task_f1score, best_task_time))
+
+# Helper function to build correct output path for an input file
 def build_output_path(input_path, output_path):
     # Extract input source (last folder before filename) and filename from input path
     input_source = os.path.basename(os.path.dirname(input_path))
@@ -226,7 +243,6 @@ def main():
         input_path = args.f
         # Check if given argument is valid (input is file)
         input_is_file = os.path.isfile(input_path)
-
         # If input argument is valid, run classification
         if (input_is_file):
             # Initialize classifier
@@ -234,8 +250,7 @@ def main():
             # Initialize cross validator
             cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
             # Run classification on single file
-            run_classification_on_df(decision_tree, cross_validator, input_path, output_path, mode='file')
-
+            run_classification_on_file(decision_tree, cross_validator, input_path, output_path, mode='file')
         # If input is not a file
         else:
             # Raise exception
@@ -247,7 +262,6 @@ def main():
         input_path = args.d
         # Check if given argument is valid (input is directory)
         input_is_dir = os.path.isdir(input_path)
-        
         # If input argument is valid, run classification 
         if (input_is_dir):
             # Initialize classifier
@@ -255,8 +269,7 @@ def main():
             # Initialize cross validator
             cross_validator = StratifiedKFold(n_splits=SPLITS, shuffle=True)
             # Run classification on all files inside directory
-            run_classification_on_ds(decision_tree, cross_validator, input_path, output_path)
-
+            run_classification_on_dir(decision_tree, cross_validator, input_path, output_path)
         # If input is not a directory
         else:
             # Raise exception
