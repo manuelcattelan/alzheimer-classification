@@ -5,8 +5,6 @@ import numpy as np
 import glob
 import os
 
-# Default output directory
-DEFAULT_OUTPUT_DIR = "data/processed/"
 # Column range holding features that need to be normalized (numeric features)
 TO_NORMALIZE_FEATURES_RANGE = np.r_[ 1:87, 88, 90 ]
 # Column range holding features that need to be filtered out (could contain only 0s)
@@ -124,7 +122,7 @@ def main():
     action = parser.add_mutually_exclusive_group(required=True)
     # -f flag and -d flag are mutually exclusive and necessary
     action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
-    action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
+    action.add_argument('-d', type=str, metavar='<input_folder>', help="input directory from which to take .csv <input_file>s to build")
     # -o flag defines output path to where classification results are stored and is necessary
     parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved", required=True)
 
