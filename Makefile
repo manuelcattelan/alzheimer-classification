@@ -6,33 +6,38 @@ DEFAULT_PROCESSED_DIR = data/processed/
 DEFAULT_RESULTS_DIR = results/
 DEFAULT_SCRIPTS_DIR = src/
 
-# either default or user-defined input path
+# either default or user-defined input-data path
 ifndef INPUT
 INPUT=$(dir ${wildcard ${DEFAULT_RAW_DIR}*/})
 endif
 
-# either default or user-defined output path
+# either default or user-defined processed-data path
+ifndef PROCESSED
+PROCESSED=$(DEFAULT_PROCESSED_DIR)
+endif
+
+# either default or user-defined output-data path
 ifndef OUTPUT
 OUTPUT=$(DEFAULT_RESULTS_DIR)
 endif
 
-PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(DEFAULT_PROCESSED_DIR)%)
-RESULTS_DATA = $(PROCESSED_DATA:$(DEFAULT_PROCESSED_DIR)%=$(OUTPUT)%)
+PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(PROCESSED)%)
+RESULTS_DATA = $(PROCESSED_DATA:$(PROCESSED)%=$(OUTPUT)%)
 
 .PHONY: all clean $(RESULTS_DATA)
 
 all: $(PROCESSED_DATA) $(RESULTS_DATA)
 
-$(PROCESSED_DATA):$(DEFAULT_PROCESSED_DIR)%:$(DEFAULT_RAW_DIR)%
+$(PROCESSED_DATA):$(PROCESSED)%:$(DEFAULT_RAW_DIR)%
 	@if [ -f $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $<'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $<; \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $< -o $(PROCESSED)'; \
+		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $< -o $(PROCESSED); \
 	elif [ -d $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $<'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $<; \
+		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $< -o $(PROCESSED)'; \
+		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $< -o $(PROCESSED); \
 	fi
 
-$(RESULTS_DATA):$(OUTPUT)%:$(DEFAULT_PROCESSED_DIR)%
+$(RESULTS_DATA):$(OUTPUT)%:$(PROCESSED)%
 	@if [ -f $< ]; then \
 		echo 'Executing $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT)'; \
 		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT); \
@@ -43,8 +48,8 @@ $(RESULTS_DATA):$(OUTPUT)%:$(DEFAULT_PROCESSED_DIR)%
 
 # clean intermediary (processed) files and results folder
 clean:
-	@echo "Cleaning $(DEFAULT_PROCESSED_DIR) folder..."
-	@rm -rf $(DEFAULT_PROCESSED_DIR)
+	@echo "Cleaning $(PROCESSED) folder..."
+	@rm -rf $(PROCESSED)
 	@echo "Cleaning $(OUTPUT) folder..."
 	@rm -rf $(OUTPUT)
 	@echo "Done!"
