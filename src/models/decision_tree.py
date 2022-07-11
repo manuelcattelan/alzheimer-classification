@@ -20,7 +20,7 @@ PERFORMANCE_DIR = 'performance/dt/'
 # Metric used to evaluate best task (0: accuracy, 1: precision, 2: recall)
 BEST_TASK_METRIC = 0
 # Features range used by the model to make classification
-MODEL_FEATURES= np.r_[ 1:91 ]
+MODEL_FEATURES = np.r_[ 1:91 ]
 # Feature name used by the model as the classification label
 MODEL_LABEL = 'Label'
 # Number of splits used in stratified k-fold
@@ -53,7 +53,7 @@ def test_model(model, X, y, test_index):
     return y_test, y_pred
 
 # Train model on all task data and export trained model
-def export_model(model, X, y, input_path, output_path, index):
+def export_model(model, X, y, features, labels, input_path, output_path, index):
     # Add model directory to initial output path
     output_path = output_path + MODELS_DIR
     # Build output path to export results
@@ -66,8 +66,8 @@ def export_model(model, X, y, input_path, output_path, index):
     trained_model = train_model(model, X, y, index)
 
     # Plot trained model and export its .png representation
-    tree.plot_tree(model, filled=True, rounded=True)
-    plt.savefig(built_output_path, bbox_inches="tight", dpi=400)
+    tree.plot_tree(model, feature_names=features, class_names=labels, filled=True, rounded=True)
+    plt.savefig(built_output_path, bbox_inches="tight", dpi=1200)
     plt.close()
 
 # Export confusion matrix
@@ -87,14 +87,12 @@ def export_confusion_matrix(cm, cm_performance, labels, input_path, output_path)
     task_f1score = cm_performance[3]
     performance_text = "\n\nAccuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%".format(task_accuracy, task_precision, task_recall, task_f1score)
 
-    # Convert binary labels to original string labels
-    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
-
     # Build heatmap with confusion matrix
     ax = sns.heatmap(cm, annot=True, xticklabels=labels, yticklabels=labels, cmap='Blues')
     # Set x/y axis labels
     ax.set_xlabel('\nPredicted values' + performance_text)
     ax.set_ylabel('Actual values')
+
     # Export heatmap to output path
     plt.savefig(built_output_path, bbox_inches="tight", dpi=400) 
     plt.close()
@@ -126,9 +124,9 @@ def run_classification_on_file(model, cv, input_path, output_path, mode):
         # Get trained model
         trained_model = train_model(model, X, y, train_index)
         # Get expected and obtained results from testing
-        model_actual, model_predicted = test_model(trained_model, X, y, test_index)
+        model_actual_labels, model_predicted_labels = test_model(trained_model, X, y, test_index)
         # Compute confusion matrix on predictions
-        split_conf_matrix = confusion_matrix(model_actual, model_predicted, labels=labels)
+        split_conf_matrix = confusion_matrix(model_actual_labels, model_predicted_labels, labels=labels)
         # Store split result in split results list
         split_results.append(split_conf_matrix)
 
@@ -137,8 +135,9 @@ def run_classification_on_file(model, cv, input_path, output_path, mode):
     # Classification delta time 
     task_time = stop_time - start_time
 
-    # Compute task confusion matrix and performance metrics
+    # Compute task confusion matrix
     task_conf_matrix = sum(matrix for matrix in split_results)
+    # Compute task performances
     tn, fp, fn, tp = task_conf_matrix.ravel()
     task_accuracy = ((tp + tn) / (tp + fp + fn + tn) * 100)
     task_precision = (tp / (tp + fp) * 100)
@@ -147,8 +146,18 @@ def run_classification_on_file(model, cv, input_path, output_path, mode):
 
     # Create tuple containing task performance
     task_performance = (task_accuracy, task_precision, task_recall, task_f1score)
-    export_model(model, X, y, input_path, output_path, df.index)
+    # Convert binary labels to original string labels
+    labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
+
+    # Export task graph and task confusion matrix
+    export_model(model, X, y, features, labels, input_path, output_path, df.index)
     export_confusion_matrix(task_conf_matrix, task_performance, labels, input_path, output_path)
+
+    # If running single file classification, print task results
+    if mode == 'file':
+        print('DT classification on {} took {:.3f}s:'.format(input_path, task_time))
+        print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\n'
+            .format(task_accuracy, task_precision, task_recall, task_f1score))
 
     # Return tuple containing task performance
     return task_performance, task_time
@@ -173,8 +182,8 @@ def run_classification_on_dir(model, cv, input_path, output_path):
         tasks_times.append(task_time)
 
     # Compute best task classification information
-    best_task_metric = max([ results[BEST_TASK_METRIC] for results in tasks_results ])
-    best_task_index = [ results[BEST_TASK_METRIC] for results in tasks_results ].index(best_task_metric)
+    best_task_value = max([ results[BEST_TASK_METRIC] for results in tasks_results ])
+    best_task_index = [ results[BEST_TASK_METRIC] for results in tasks_results ].index(best_task_value)
     best_task_time = tasks_times[best_task_index]
 
     # Obtain best task performances
@@ -189,11 +198,11 @@ def run_classification_on_dir(model, cv, input_path, output_path):
     classification_metric = {0: 'accuracy', 1: 'precision', 2: 'recall'}[BEST_TASK_METRIC]
 
     # Print classification classification results
-    print("\nDT classification on {} took: {:.3f}s (avg: {:.3f}s)"
+    print('\nDT classification on {} took: {:.3f}s (avg: {:.3f}s)'
             .format(input_path, total_classification_time, avg_classification_time))
-    print("Best performing task (considering {}) was T{}, with the following results:"
+    print('Best performing task (wrt {}) was T{}, with the following results:'
             .format(classification_metric, best_task_index + 1))
-    print("Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s"
+    print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s\n'
             .format(best_task_accuracy, best_task_precision, best_task_recall, best_task_f1score, best_task_time))
 
 # Helper function to build correct output path for an input file
@@ -221,10 +230,20 @@ def main():
     # Add possible cli arguments to parser
     action = parser.add_mutually_exclusive_group(required=True)
     # -f flag and -d flag are mutually exclusive and necessary
-    action.add_argument('-f', type=str, metavar='<input_file>', help="input .csv file to build")
-    action.add_argument('-d', type=str, metavar='<input_source>', help="input directory from which to take .csv <input_file>s to build")
+    action.add_argument('-f',
+                        type=str,
+                        metavar='<input_file>',
+                        help="input .csv file to build")
+    action.add_argument('-d',
+                        type=str,
+                        metavar='<input_source>',
+                        help="input directory from which to take .csv <input_file>s to build")
     # -o flag defines output path to where classification results are stored and is necessary
-    parser.add_argument('-o', type=str, metavar='<output_folder>', help="output directory where built data is saved", required=True)
+    parser.add_argument('-o',
+                        type=str,
+                        metavar='<output_folder>',
+                        help="output directory where built data is saved",
+                        required=True)
 
     # Parse cli arguments and store them in variable 'args'
     args = parser.parse_args()
