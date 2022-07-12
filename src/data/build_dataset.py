@@ -74,7 +74,6 @@ def map_data(df_to_map):
 
 def build_data(input_path, output_path):
     # read input path as dataframe
-    # read input path as dataframe
     df_raw = pd.read_csv(input_path, sep=',', converters={'Sex': str.strip,
                                                           'Work': str.strip,
                                                           'Label': str.strip})
