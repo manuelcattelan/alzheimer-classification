@@ -21,6 +21,10 @@ ifndef OUTPUT
 OUTPUT=$(DEFAULT_RESULTS_DIR)
 endif
 
+ifndef MODELS
+MODELS=$(wildcard $(DEFAULT_SCRIPTS_DIR)models/*.py)
+endif
+
 PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(PROCESSED)%)
 RESULTS_DATA = $(PROCESSED_DATA:$(PROCESSED)%=$(OUTPUT)%)
 
@@ -37,14 +41,15 @@ $(PROCESSED_DATA):$(PROCESSED)%:$(DEFAULT_RAW_DIR)%
 		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $< -o $(PROCESSED); \
 	fi
 
-$(RESULTS_DATA):$(OUTPUT)%:$(PROCESSED)%
-	@if [ -f $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT)'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -f $< -o $(OUTPUT); \
-	elif [ -d $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -d $< -o $(OUTPUT)'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)models/decision_tree.py -d $< -o $(OUTPUT); \
-	fi
+$(RESULTS_DATA):$(OUTPUT)%:$(PROCESSED)% $(MODELS)
+	@for model in $(filter-out $<,$^); do \
+		echo $$model; \
+		if [ -f $< ]; then \
+			python3 $$model -f $< -o $(PROCESSED); \
+		elif [ -d $< ]; then \
+			python3 $$model -d $< -o $(PROCESSED); \
+		fi; \
+	done
 
 # clean intermediary (processed) files and results folder
 clean:
