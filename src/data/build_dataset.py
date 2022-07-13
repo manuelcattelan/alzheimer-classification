@@ -107,15 +107,11 @@ def build_output_path(input_path, output_path):
 def main():
     # set up parser and possible arguments
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument('-f',
+    parser.add_argument('-i',
                         type=str,
-                        metavar='<input_file>',
-                        help='input file to build in csv format')
-    action.add_argument('-d',
-                        type=str,
-                        metavar='<input_dir>',
-                        help='input directory containing input files to build in csv format')
+                        metavar='<input_file/dir>',
+                        help='input file or directory to process',
+                        required=True)
     parser.add_argument('-o',
                         type=str,
                         metavar='<output_dir>',
@@ -125,36 +121,36 @@ def main():
     args = vars(args)
 
     # store parsed arguments
-    input_filepath = args['f']
-    input_dirpath = args['d']
-    output_dirpath = args['o']
+    input_path = Path(args['i'])
+    output_path = Path(args['o'])
 
     # check output argument validity by checking
     # if it ends with any extension
-    output_dirpath_extension = (os.path.splitext(output_dirpath))[1]
-    if output_dirpath_extension != '':
-        raise ValueError(output_dirpath + ' is not a valid directory path')
+    output_path_extension = (os.path.splitext(output_path))[1]
+    if output_path_extension != '':
+        raise ValueError(output_path + ' is not a valid directory path')
 
-    # check inputfile argument validity by checking
+    # check input argument validity by checking
     # if it points to an existing file
-    if (input_filepath):
-        if (os.path.isfile(input_filepath)):
-            # build specified input file
-            build_data(input_filepath, output_dirpath)
-        else:
-            raise ValueError(input_filepath + ' is not an existing file')
+    if (os.path.isfile(input_path)):
+        # build specified input file
+        build_data(input_path, output_path)
 
-    # check inputdir argument validity by checking
+    # check input argument validity by checking
     # if it points to an existing directory
-    if (input_dirpath):
-        if (os.path.isdir(input_dirpath)):
-            # get list of all file paths inside the specified input dir
-            input_filepaths = sorted([ os.path.join(input_dirpath, input_path) for input_path in os.listdir(input_dirpath) ])
-            # build each file inside the specified input dir
-            for input_filepath in input_filepaths:
-                build_data(input_filepath, output_dirpath)
-        else:
-            raise ValueError(input_dirpath + ' is not an existing directory')
+    elif (os.path.isdir(input_path)):
+        # traverse input directory and find all .csv files
+        for root, dirs, files in os.walk(input_path):
+            for filename in files:
+                # build filepath from current directory and filename
+                input_filepath = os.path.join(root, filename)
+                # if a file is in csv format, build it
+                if (os.path.splitext(input_filepath)[1] == '.csv'):
+                    build_data(input_filepath, output_path)
+
+    # if input argument is neither a file or directory, raise exception
+    else:
+        raise ValueError(input_path + ' is neither an existing file nor directory')
 
 if __name__ == '__main__':
     main()
