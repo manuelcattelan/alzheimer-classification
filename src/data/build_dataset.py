@@ -74,7 +74,7 @@ def map_data(df_to_map):
 
 def build_data(input_path, output_path):
     # read input path as dataframe
-    df_raw = pd.read_csv(input_path, sep=',', converters={'Sex': str.strip,
+    df_raw = pd.read_csv(input_path, sep=';', converters={'Sex': str.strip,
                                                           'Work': str.strip,
                                                           'Label': str.strip})
     # entire preprocessing
@@ -84,7 +84,7 @@ def build_data(input_path, output_path):
 
     # build output path and export built data to that path
     output_filepath = build_output_path(input_path, output_path)
-    df_normalized.to_csv(output_filepath, index=False)
+    df_normalized.to_csv(output_filepath, sep=';', index=False)
 
 def build_output_path(input_path, output_path):
     # extract input parent dir and filename from input path
