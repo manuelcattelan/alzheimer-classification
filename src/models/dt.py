@@ -207,10 +207,13 @@ def main():
         for root, dirs, files in os.walk(input_path):
             # if files were found in currently walked dir
             if files:
-                # build filepath from currently walked dir and all files inside
-                input_dict[root] = sorted([ os.path.join(root, file) for file in files])
+                csv_files = [] 
+                for file in files:
+                    if (os.path.splitext(file))[1] == '.csv':
+                        csv_files.append(file)
+                input_dict[root] = sorted(csv_files)
 
-        # for each dir inside input argument, make classification on all files inside of it   
+        # for each dir inside input argument, make classification on all files inside of it  
         for dir in input_dict:
             # list of files inside dir
             input_filepaths = input_dict[dir]
@@ -235,7 +238,7 @@ def main():
             print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s'
                   .format(results[0], results[1], results[2], results[3], time))
     else:
-        raise ValueError(input_path + ' is neither an existing file nor directory')
+        raise ValueError(input_path / ' is neither an existing file nor directory')
 
 if __name__ == '__main__':
     main()

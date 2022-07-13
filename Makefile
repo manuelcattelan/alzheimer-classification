@@ -1,60 +1,28 @@
-# Makefile
-
-# project directories
-DEFAULT_RAW_DIR = data/raw/
-DEFAULT_PROCESSED_DIR = data/processed/
-DEFAULT_RESULTS_DIR = results/
-DEFAULT_SCRIPTS_DIR = src/
-
-# either default or user-defined input-data path
-ifndef INPUT
-INPUT=$(dir ${wildcard ${DEFAULT_RAW_DIR}*/})
+# makefile
+ifndef input
+input = data/raw
 endif
 
-# either default or user-defined processed-data path
-ifndef PROCESSED
-PROCESSED=$(DEFAULT_PROCESSED_DIR)
+ifndef processed
+processed = data/processed
 endif
 
-# either default or user-defined output-data path
-ifndef OUTPUT
-OUTPUT=$(DEFAULT_RESULTS_DIR)
+ifndef output
+output = reports
 endif
 
-ifndef MODELS
-MODELS=$(wildcard $(DEFAULT_SCRIPTS_DIR)models/*.py)
+ifndef models
+models = $(wildcard src/models/*.py)
 endif
 
-PROCESSED_DATA = $(INPUT:$(DEFAULT_RAW_DIR)%=$(PROCESSED)%)
-RESULTS_DATA = $(PROCESSED_DATA:$(PROCESSED)%=$(OUTPUT)%)
+data/processed: data/raw
+	python3 src/data/build_dataset.py -i $(input) -o $(processed)
 
-.PHONY: all clean $(RESULTS_DATA)
-
-all: $(PROCESSED_DATA) $(RESULTS_DATA)
-
-$(PROCESSED_DATA):$(PROCESSED)%:$(DEFAULT_RAW_DIR)%
-	@if [ -f $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $< -o $(PROCESSED)'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -f $< -o $(PROCESSED); \
-	elif [ -d $< ]; then \
-		echo 'Executing $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $< -o $(PROCESSED)'; \
-		python3 $(DEFAULT_SCRIPTS_DIR)data/build_data.py -d $< -o $(PROCESSED); \
-	fi
-
-$(RESULTS_DATA):$(OUTPUT)%:$(PROCESSED)% $(MODELS)
-	@for model in $(filter-out $<,$^); do \
-		echo $$model; \
-		if [ -f $< ]; then \
-			python3 $$model -f $< -o $(PROCESSED); \
-		elif [ -d $< ]; then \
-			python3 $$model -d $< -o $(PROCESSED); \
-		fi; \
+run: data/processed
+	@for model in $(models); do \
+		python3 $$model -i $(processed) -o $(output); \
 	done
 
-# clean intermediary (processed) files and results folder
 clean:
-	@echo "Cleaning $(PROCESSED) folder..."
-	@rm -rf $(PROCESSED)
-	@echo "Cleaning $(OUTPUT) folder..."
-	@rm -rf $(OUTPUT)
-	@echo "Done!"
+	rm -rf $(processed)
+	rm -rf $(output)

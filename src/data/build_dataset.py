@@ -82,9 +82,9 @@ def build_data(input_path, output_path):
     df_cleaned = clean_data(df_mapped)
     df_normalized = normalize_data(df_cleaned)
 
-    # build output path and export built data to that path
-    output_filepath = build_output_path(input_path, output_path)
-    df_normalized.to_csv(output_filepath, sep=';', index=False)
+    output_dirname = Path(os.path.dirname(output_path))
+    output_dirname.mkdir(parents=True, exist_ok=True)
+    df_normalized.to_csv(output_path, sep=';', index=False)
 
 def build_output_path(input_path, output_path):
     # extract input parent dir and filename from input path
@@ -114,8 +114,8 @@ def main():
                         required=True)
     parser.add_argument('-o',
                         type=str,
-                        metavar='<output_dir>',
-                        help='output directory where processed data is saved',
+                        metavar='<output_file/dir>',
+                        help='output file or directory where processed data is saved',
                         required=True)
     args = parser.parse_args()
     args = vars(args)
@@ -127,26 +127,36 @@ def main():
     # check output argument validity by checking
     # if it ends with any extension
     output_path_extension = (os.path.splitext(output_path))[1]
-    if output_path_extension != '':
-        raise ValueError(output_path + ' is not a valid directory path')
 
     # check input argument validity by checking
     # if it points to an existing file
     if (os.path.isfile(input_path)):
-        # build specified input file
-        build_data(input_path, output_path)
+        if (output_path_extension == '.csv'):
+            # build specified input file
+            build_data(input_path, output_path)
+        else:
+            raise ValueError(str(output_path) + ' is not a valid file path' )
 
     # check input argument validity by checking
     # if it points to an existing directory
     elif (os.path.isdir(input_path)):
-        # traverse input directory and find all .csv files
-        for root, dirs, files in os.walk(input_path):
-            for filename in files:
-                # build filepath from current directory and filename
-                input_filepath = os.path.join(root, filename)
-                # if a file is in csv format, build it
-                if (os.path.splitext(input_filepath)[1] == '.csv'):
-                    build_data(input_filepath, output_path)
+        if (output_path_extension == ''):
+            # traverse input directory and find all .csv files
+            for root, dirs, files in os.walk(input_path):
+                if (dirs):
+                    for dir in dirs:
+                        for file in os.listdir(os.path.join(root, dir)):
+                            if (os.path.splitext(file))[1] == '.csv':
+                                full_input_path = os.path.join(input_path, dir, file)
+                                full_output_path = os.path.join(output_path, dir, file)
+                                build_data(full_input_path, full_output_path)
+                    break
+                elif (files):
+                    for file in files:
+                        if (os.path.splitext(file))[1] == '.csv':
+                            pass
+        else:
+            raise ValueError(str(output_path) + ' is not a valid directory path')
 
     # if input argument is neither a file or directory, raise exception
     else:
