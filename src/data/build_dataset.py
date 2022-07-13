@@ -149,7 +149,7 @@ def main():
     if (input_dirpath):
         if (os.path.isdir(input_dirpath)):
             # get list of all file paths inside the specified input dir
-            input_filepaths = sorted(glob.glob(os.path.join(input_dirpath, '*.csv')))
+            input_filepaths = sorted([ os.path.join(input_dirpath, input_path) for input_path in os.listdir(input_dirpath) ])
             # build each file inside the specified input dir
             for input_filepath in input_filepaths:
                 build_data(input_filepath, output_dirpath)
