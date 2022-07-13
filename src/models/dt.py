@@ -150,15 +150,11 @@ def export_clf_performance(cm, performance, labels, input_path, output_path):
 def main():
     # set up parser and possible arguments
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    action = parser.add_mutually_exclusive_group(required=True)
-    action.add_argument('-f',
+    parser.add_argument('-i',
                         type=str,
-                        metavar='<input_file>',
-                        help='input file to use for classification')
-    action.add_argument('-d',
-                        type=str,
-                        metavar='<input_dir>',
-                        help='input directory containing input files to use for classification')
+                        metavar='<input_file/dir>',
+                        help='input file or directory to classify',
+                        required=True)
     parser.add_argument('-s',
                         type=int,
                         metavar='<n_splits>',
@@ -178,48 +174,53 @@ def main():
     args = vars(args)
 
     # store parsed arguments
-    input_filepath = args['f']
-    input_dirpath = args['d']
-    output_dirpath = Path(args['o'])
+    input_path = Path(args['i'])
+    output_path = Path(args['o'])
 
     # check output argument validity by checking
     # if it ends with any extension
-    output_dirpath_extension = (os.path.splitext(output_dirpath))[1]
-    if output_dirpath_extension != '':
-        raise ValueError(output_dirpath + ' is not a valid directory path')
+    output_path_extension = (os.path.splitext(output_path))[1]
+    if output_path_extension != '':
+        raise ValueError(output_path + ' is not a valid directory path')
 
     # check inputfile argument validity by checking
     # if it points to an existing file
-    if (input_filepath):
-        if (os.path.isfile(input_filepath)):
-            # define classifier and cross validator
-            clf = tree.DecisionTreeClassifier()
-            cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
-            # run classification on file
-            results, time = run_clf(clf, cv, input_filepath, output_dirpath) 
-            print('Classification on {} took {:.3f}s:'
-                  .format(input_filepath, time))
-            print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 score: {:.1f}%'
-                  .format(results[0], results[1], results[2], results[3]))
-        else:
-            raise ValueError(input_filepath + ' is not an existing file')
+    if (os.path.isfile(input_path)):
+        # define classifier and cross validator
+        clf = tree.DecisionTreeClassifier()
+        cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
+        # run classification on file
+        results, time = run_clf(clf, cv, input_path, output_path) 
+        print('Classification on {} took {:.3f}s:'
+              .format(input_path, time))
+        print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 score: {:.1f}%'
+              .format(results[0], results[1], results[2], results[3]))
 
     # check inputdir argument validity by checking
     # if it points to an existing directory
-    if (input_dirpath):
-        if (os.path.isdir(input_dirpath)):
-            # define classifier and cross validator
-            clf = tree.DecisionTreeClassifier()
-            cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
-            # get list of all file paths inside the specified input dir
-            input_filepaths = sorted([ os.path.join(input_dirpath, input_path) for input_path in os.listdir(input_dirpath) ])
+    elif (os.path.isdir(input_path)):
+        # define classifier and cross validator
+        clf = tree.DecisionTreeClassifier()
+        cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
+        # traverse input directory and find all .csv files
+        input_dict = {}
+        for root, dirs, files in os.walk(input_path):
+            # if files were found in currently walked dir
+            if files:
+                # build filepath from currently walked dir and all files inside
+                input_dict[root] = sorted([ os.path.join(root, file) for file in files])
+
+        # for each dir inside input argument, make classification on all files inside of it   
+        for dir in input_dict:
+            # list of files inside dir
+            input_filepaths = input_dict[dir]
             # list where each task result is stored
             input_results = []
             # list where each task time is stored
             input_times = []
             # run classification on each file inside input dir
             for input_filepath in input_filepaths:
-                results, time = run_clf(clf, cv, input_filepath, output_dirpath)
+                results, time = run_clf(clf, cv, input_filepath, output_path)
                 input_results.append(results)
                 input_times.append(time)
 
@@ -228,13 +229,13 @@ def main():
             avg_clf_time = np.mean([ time for time in input_times ])
 
             print('Classification on {} took: {:.3f}s (avg: {:.3f}s)'
-                  .format(input_dirpath, total_clf_time, avg_clf_time))
+                  .format(dir, total_clf_time, avg_clf_time))
             print('Best performing task (wrt {}) was T{}, with the following results:'
                   .format(args['m'], index + 1))
             print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s'
                   .format(results[0], results[1], results[2], results[3], time))
-        else:
-            raise ValueError(input_dirpath + ' is not an existing directory')
+    else:
+        raise ValueError(input_path + ' is neither an existing file nor directory')
 
 if __name__ == '__main__':
     main()
