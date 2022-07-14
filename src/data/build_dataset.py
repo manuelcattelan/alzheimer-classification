@@ -86,38 +86,26 @@ def build_data(input_path, output_path):
     output_dirname.mkdir(parents=True, exist_ok=True)
     df_normalized.to_csv(output_path, sep=';', index=False)
 
-def build_output_path(input_path, output_path):
-    # extract input parent dir and filename from input path
-    input_parent_dir = os.path.basename(os.path.dirname(input_path))
-    input_filename = os.path.basename(input_path)
-
-    # join initial output path with input parent dir 
-    # (e.g. add air/ to data/processed/)
-    # and create result directory if it does not exist
-    output_dirpath = Path(output_path)
-    output_dirpath = output_dirpath / input_parent_dir
-    output_dirpath.mkdir(parents=True, exist_ok=True)
-
-    # join new output path with input file name
-    # this is the path to which the current file will be saved
-    output_filepath = output_dirpath / input_filename
-
-    return output_filepath
-
-def get_input(input_root, output_root, input_paths=[], output_paths=[]):
+def recursive_input_scan(input_root, output_root, input_paths=[], output_paths=[]):
+    # scan input root dir (find files and subdirs)
     input_root_content = os.listdir(input_root)
+
     for content in input_root_content:
+        # for each content inside input root dir, build content absolute paths
         input_content_path = os.path.join(input_root, content)
         output_content_path = os.path.join(output_root, content)
+        # if content is file in csv format, append absolute paths in path lists 
         if (os.path.isfile(input_content_path) and
             os.path.splitext(input_content_path)[1] == '.csv'):
             input_paths.append(input_content_path)
             output_paths.append(output_content_path)
+        # if content is dir, recursively call this function to scan dir content
         elif (os.path.isdir(input_content_path) and
               not(input_content_path.startswith('.'))):
+            # update root input path and root output path for recursive call
             new_input_root = input_content_path
             new_output_root = output_content_path
-            get_input(new_input_root, new_output_root, input_paths, output_paths)
+            recursive_input_scan(new_input_root, new_output_root, input_paths, output_paths)
 
     return sorted(input_paths), sorted(output_paths)
 
@@ -161,7 +149,10 @@ def main():
     elif (os.path.isdir(input_path)):
         # if output is a valid path to folder
         if (output_path_extension == ''):
-            input_paths, output_paths = get_input(input_path, output_path)
+            # recursively scan input folder for any csv file 
+            # and store input/output path lists
+            input_paths, output_paths = recursive_input_scan(input_path, output_path)
+            # for each input/output path pair, build input and export to output
             for input_path, output_path in zip(input_paths, output_paths):
                 build_data(input_path, output_path)
         else:
