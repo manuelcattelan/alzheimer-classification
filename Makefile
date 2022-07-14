@@ -12,7 +12,7 @@ output = reports
 endif
 
 ifndef models
-models = $(wildcard src/models/*.py)
+models = $(notdir $(wildcard src/models/*.py))
 endif
 
 all: clean run
@@ -23,8 +23,7 @@ $(processed): $(input)
 dataset: $(processed)
 
 run: dataset
-	@echo 'run'
-
+	$(foreach model,$(models),@python3 src/models/$(model) -i $(processed) -o $(output)/$(basename $(model));)	
 clean:
 	rm -rf $(processed)
 	rm -rf $(output)
