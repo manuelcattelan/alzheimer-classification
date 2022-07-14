@@ -15,13 +15,15 @@ ifndef models
 models = $(wildcard src/models/*.py)
 endif
 
-data/processed: data/raw
+all: clean run
+
+$(processed): $(input)
 	python3 src/data/build_dataset.py -i $(input) -o $(processed)
 
-run: data/processed
-	@for model in $(models); do \
-		python3 $$model -i $(processed) -o $(output); \
-	done
+dataset: $(processed)
+
+run: dataset
+	@echo 'run'
 
 clean:
 	rm -rf $(processed)
