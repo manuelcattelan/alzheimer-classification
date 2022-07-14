@@ -134,33 +134,31 @@ def main():
     # if input is dir  -> output must be dir without any extension
     output_path_extension = (os.path.splitext(output_path))[1]
 
-    # check input argument validity by checking
-    # if it points to an existing file
+    # if input argument is not an existing file or directory, raise exception
+    if (not(os.path.isfile(input_path)) and not(os.path.isdir(input_path))):
+        raise ValueError(str(input_path) + ' is neither an existing file nor directory')
+ 
+    # check if input argument points to file
     if (os.path.isfile(input_path)):
-        # if output is a valid path to file
-        if (output_path_extension == '.csv'):
-            # build specified input file
-            build_data(input_path, output_path)
-        else:
-            raise ValueError(str(output_path) + ' is not a valid file path' )
+        # if output argument is not a valid path to csv file
+        if (output_path_extension != '.csv'):
+            raise ValueError(str(output_path) + ' is not a valid csv file path' )
 
-    # check input argument validity by checking
-    # if it points to an existing directory
-    elif (os.path.isdir(input_path)):
-        # if output is a valid path to folder
-        if (output_path_extension == ''):
-            # recursively scan input folder for any csv file 
-            # and store input/output path lists
-            input_paths, output_paths = recursive_input_scan(input_path, output_path)
-            # for each input/output path pair, build input and export to output
-            for input_path, output_path in zip(input_paths, output_paths):
-                build_data(input_path, output_path)
-        else:
+        # build specified input file
+        build_data(input_path, output_path)
+
+    # check if input argument points to directory
+    if (os.path.isdir(input_path)):
+        # if output argument is not a valid path to directory
+        if (output_path_extension != ''):
             raise ValueError(str(output_path) + ' is not a valid directory path')
 
-    # if input argument is neither a file or directory, raise exception
-    else:
-        raise ValueError(input_path + ' is neither an existing file nor directory')
+        # recursively scan input directory for any csv file 
+        # and store input/output path lists
+        input_paths, output_paths = recursive_input_scan(input_path, output_path)
+        # for each input/output path pair, build input and export to output
+        for input_path, output_path in zip(input_paths, output_paths):
+            build_data(input_path, output_path)
 
 if __name__ == '__main__':
     main()
