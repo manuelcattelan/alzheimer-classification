@@ -218,7 +218,6 @@ def main():
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
         # traverse input directory and find all .csv files
         input_paths, output_paths = recursive_input_scan(input_path, output_path)
-        print(output_paths)
 
         # for each dir inside input argument, make classification on all files inside of it 
         for input_dir, output_dir in zip(input_paths, output_paths):
