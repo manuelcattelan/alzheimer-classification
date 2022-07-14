@@ -104,6 +104,23 @@ def build_output_path(input_path, output_path):
 
     return output_filepath
 
+def get_input(input_root, output_root, input_paths=[], output_paths=[]):
+    input_root_content = os.listdir(input_root)
+    for content in input_root_content:
+        input_content_path = os.path.join(input_root, content)
+        output_content_path = os.path.join(output_root, content)
+        if (os.path.isfile(input_content_path) and
+            os.path.splitext(input_content_path)[1] == '.csv'):
+            input_paths.append(input_content_path)
+            output_paths.append(output_content_path)
+        elif (os.path.isdir(input_content_path) and
+              not(input_content_path.startswith('.'))):
+            new_input_root = input_content_path
+            new_output_root = output_content_path
+            get_input(new_input_root, new_output_root, input_paths, output_paths)
+
+    return sorted(input_paths), sorted(output_paths)
+
 def main():
     # set up parser and possible arguments
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -117,20 +134,22 @@ def main():
                         metavar='<output_file/dir>',
                         help='output file or directory where processed data is saved',
                         required=True)
-    args = parser.parse_args()
-    args = vars(args)
 
     # store parsed arguments
+    args = parser.parse_args()
+    args = vars(args)
     input_path = Path(args['i'])
     output_path = Path(args['o'])
 
-    # check output argument validity by checking
-    # if it ends with any extension
+    # check output argument validity by checking its extension:
+    # if input is file -> output must be file with csv extension
+    # if input is dir  -> output must be dir without any extension
     output_path_extension = (os.path.splitext(output_path))[1]
 
     # check input argument validity by checking
     # if it points to an existing file
     if (os.path.isfile(input_path)):
+        # if output is a valid path to file
         if (output_path_extension == '.csv'):
             # build specified input file
             build_data(input_path, output_path)
@@ -140,21 +159,11 @@ def main():
     # check input argument validity by checking
     # if it points to an existing directory
     elif (os.path.isdir(input_path)):
+        # if output is a valid path to folder
         if (output_path_extension == ''):
-            # traverse input directory and find all .csv files
-            for root, dirs, files in os.walk(input_path):
-                if (dirs):
-                    for dir in dirs:
-                        for file in os.listdir(os.path.join(root, dir)):
-                            if (os.path.splitext(file))[1] == '.csv':
-                                full_input_path = os.path.join(input_path, dir, file)
-                                full_output_path = os.path.join(output_path, dir, file)
-                                build_data(full_input_path, full_output_path)
-                    break
-                elif (files):
-                    for file in files:
-                        if (os.path.splitext(file))[1] == '.csv':
-                            pass
+            input_paths, output_paths = get_input(input_path, output_path)
+            for input_path, output_path in zip(input_paths, output_paths):
+                build_data(input_path, output_path)
         else:
             raise ValueError(str(output_path) + ' is not a valid directory path')
 
