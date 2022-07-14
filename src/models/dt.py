@@ -1,6 +1,7 @@
 from sklearn import tree
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
+from collections import defaultdict
 from pathlib import Path
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -106,28 +107,10 @@ def compute_clf_best_task(tasks_results, tasks_times, p_metric):
 
     return (best_task_accuracy, best_task_precision, best_task_recall, best_task_f1score), best_task_time, best_task_index
 
-def build_output_path(input_path, output_path):
-    # extract input parent dir and filename from input path
-    input_parent_dir = os.path.basename(os.path.dirname(input_path))
-    input_filename = os.path.basename(input_path)
-
-    # join initial output path with input parent dir 
-    # (e.g. add air/ to data/processed/)
-    # and create result directory if it does not exist
-    output_dirpath = output_path
-    output_dirpath = output_dirpath / input_parent_dir
-    output_dirpath.mkdir(parents=True, exist_ok=True)
-
-    # join new output path with input file name
-    # this is the path to which the current file will be saved
-    output_filepath = output_dirpath / input_filename
-
-    return output_filepath
-
 def export_clf_performance(cm, performance, labels, input_path, output_path):
-    # build output path corresponding to input filename being classified
-    output_path = output_path / 'performance/dt/'
-    output_path = build_output_path(input_path, output_path)
+    output_dirname = Path(os.path.dirname(output_path))
+    output_dirname.mkdir(parents=True, exist_ok=True)
+    output_path = Path(output_path)
     output_path = (output_path.with_suffix('')).with_suffix('.png')
 
     # map boolean labels to strings
@@ -146,6 +129,29 @@ def export_clf_performance(cm, performance, labels, input_path, output_path):
     # Export heatmap to output path
     plt.savefig(output_path, bbox_inches="tight", dpi=400) 
     plt.close()
+
+def recursive_input_scan(input_root, output_root, input_paths=defaultdict(list), output_paths=defaultdict(list)):
+    # scan input root dir (find files and subdirs)
+    input_root_content = os.listdir(input_root)
+
+    for content in input_root_content:
+        # for each content inside input root dir, build content absolute paths
+        input_content_path = os.path.join(input_root, content)
+        output_content_path = os.path.join(output_root, content)
+        # if content is file in csv format, append absolute paths in path lists 
+        if (os.path.isfile(input_content_path) and
+            os.path.splitext(input_content_path)[1] == '.csv'):
+            input_paths[input_root].append(input_content_path)
+            output_paths[output_root].append(output_content_path)
+        # if content is dir, recursively call this function to scan dir content
+        elif (os.path.isdir(input_content_path) and
+              not(input_content_path.startswith('.'))):
+            # update root input path and root output path for recursive call
+            new_input_root = input_content_path
+            new_output_root = output_content_path
+            recursive_input_scan(new_input_root, new_output_root, input_paths, output_paths)
+
+    return input_paths, output_paths
 
 def main():
     # set up parser and possible arguments
@@ -180,12 +186,17 @@ def main():
     # check output argument validity by checking
     # if it ends with any extension
     output_path_extension = (os.path.splitext(output_path))[1]
-    if output_path_extension != '':
-        raise ValueError(output_path + ' is not a valid directory path')
 
-    # check inputfile argument validity by checking
-    # if it points to an existing file
+    # if input argument is not an existing file or directory, raise exception
+    if not(os.path.isfile(input_path)) and not(os.path.isdir(input_path)):
+        raise ValueError(str(input_path) + ' is neither an existing file nor directory')
+
+    # check if input argument points to file
     if (os.path.isfile(input_path)):
+        # if output argument is not a valid path to png file
+        if output_path_extension != '.png':
+            raise ValueError(str(output_path) + ' is not a valid png file path')
+
         # define classifier and cross validator
         clf = tree.DecisionTreeClassifier()
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
@@ -196,49 +207,54 @@ def main():
         print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 score: {:.1f}%'
               .format(results[0], results[1], results[2], results[3]))
 
-    # check inputdir argument validity by checking
-    # if it points to an existing directory
-    elif (os.path.isdir(input_path)):
+    # check if input argument points to directory
+    if (os.path.isdir(input_path)):
+        # if output argument is not a valid path to directory
+        if output_path_extension != '':
+            raise ValueError(str(output_path) + ' is not a valid directory path')
+
         # define classifier and cross validator
         clf = tree.DecisionTreeClassifier()
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
         # traverse input directory and find all .csv files
-        input_dict = {}
-        for root, dirs, files in os.walk(input_path):
-            # if files were found in currently walked dir
-            if files:
-                csv_files = [] 
-                for file in files:
-                    if (os.path.splitext(file))[1] == '.csv':
-                        csv_files.append(file)
-                input_dict[root] = sorted(csv_files)
+        input_paths, output_paths = recursive_input_scan(input_path, output_path)
+        print(output_paths)
 
-        # for each dir inside input argument, make classification on all files inside of it  
-        for dir in input_dict:
+        # for each dir inside input argument, make classification on all files inside of it 
+        for input_dir, output_dir in zip(input_paths, output_paths):
             # list of files inside dir
-            input_filepaths = input_dict[dir]
-            # list where each task result is stored
-            input_results = []
-            # list where each task time is stored
-            input_times = []
-            # run classification on each file inside input dir
-            for input_filepath in input_filepaths:
-                results, time = run_clf(clf, cv, input_filepath, output_path)
-                input_results.append(results)
-                input_times.append(time)
+            input_filepaths = input_paths[input_dir]
+            output_filepaths = output_paths[output_dir]
 
-            results, time, index = compute_clf_best_task(input_results, input_times, args['m'])
-            total_clf_time = sum([ time for time in input_times ])
-            avg_clf_time = np.mean([ time for time in input_times ])
+            if len(input_filepaths) == 1:
+                # run classification on file
+                run_clf(clf, cv, input_filepaths[0], output_filepaths[0])
+                print('Classification on {} took {:.3f}s:'
+                      .format(input_filepaths[0], time))
+                print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 score: {:.1f}%'
+                      .format(results[0], results[1], results[2], results[3]))
 
-            print('Classification on {} took: {:.3f}s (avg: {:.3f}s)'
-                  .format(dir, total_clf_time, avg_clf_time))
-            print('Best performing task (wrt {}) was T{}, with the following results:'
-                  .format(args['m'], index + 1))
-            print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s'
-                  .format(results[0], results[1], results[2], results[3], time))
-    else:
-        raise ValueError(input_path / ' is neither an existing file nor directory')
+            else:
+                # list where each task result is stored
+                input_results = []
+                # list where each task time is stored
+                input_times = []
+                # run classification on each file inside input dir
+                for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
+                    results, time = run_clf(clf, cv, input_filepath, output_filepath)
+                    input_results.append(results)
+                    input_times.append(time)
+
+                results, time, index = compute_clf_best_task(input_results, input_times, args['m'])
+                total_clf_time = sum([ time for time in input_times ])
+                avg_clf_time = np.mean([ time for time in input_times ])
+
+                print('Classification on {} took: {:.3f}s (avg: {:.3f}s)'
+                      .format(input_dir, total_clf_time, avg_clf_time))
+                print('Best performing task (wrt {}) was T{}, with the following results:'
+                      .format(args['m'], index + 1))
+                print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 Score: {:.1f}%\nTime: {:.3f}s'
+                      .format(results[0], results[1], results[2], results[3], time))
 
 if __name__ == '__main__':
     main()
