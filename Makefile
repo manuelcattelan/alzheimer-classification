@@ -25,15 +25,23 @@ final_custom_processed_only_dir_list = $(patsubst %.csv,%.png,$(custom_processed
 custom_output_path = $(subst $(space),/,$(final_custom_processed_only_dir_list))
 
 all: clean run
+	$(info Classification has finished, results can be found in: $(output_data))
 
 $(processed_data): $(input_data)
-	python3 src/data/build_dataset.py -i $(input_data) -o $(processed_data)
+	$(info Building $(input_data)...)
+	@python3 src/data/build_dataset.py -i $(input_data) -o $(processed_data)
 
 dataset: $(processed_data)
+	$(info $(input_data) was built, processed data can be found in: $(processed_data))
 
 run: dataset
-	$(foreach model,$(models),python3 src/models/$(model) -i $(processed_data) -o $(output_data)/$(basename $(model))/$(custom_output_path);)
+	@$(foreach model,$(models), \
+		python3 src/models/$(model) -i $(processed_data) -o $(output_data)/$(basename $(model))/$(custom_output_path); \
+	)
 
 clean:
-	rm -rf $(processed_data)
-	rm -rf $(output_data)
+	$(info Removing $(processed_data) if present...)
+	@rm -rf $(processed_data)
+	$(info Removing $(output_data) if present...)
+	@rm -rf $(output_data)
+	$(info Done!)

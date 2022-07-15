@@ -201,6 +201,9 @@ def main():
         # define classifier and cross validator
         clf = svm.SVC()
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
+
+        print('\nRunning {} on {} ...'
+              .format(argparse._sys.argv[0], input_path))
         # run classification on file
         results, time = run_clf(clf, cv, input_path, output_path) 
         print('Classification on {} took {:.3f}s:'
@@ -218,6 +221,8 @@ def main():
         clf = svm.SVC()
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
 
+        print('\nRunning {} on {} ...'
+              .format(argparse._sys.argv[0], input_path))
         # recursively scan input directory for any csv file 
         # and store input/output path lists
         input_paths, output_paths = recursive_input_scan(input_path, output_path)
