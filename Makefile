@@ -4,6 +4,10 @@
 empty=
 space= $(empty) $(empty)
 
+define NEWLINE
+
+endef
+
 # default data directories
 default_input_data = data/raw
 default_processed_data = data/processed
@@ -25,6 +29,7 @@ final_custom_processed_only_dir_list = $(patsubst %.csv,%.png,$(custom_processed
 custom_output_path = $(subst $(space),/,$(final_custom_processed_only_dir_list))
 
 all: clean run
+	$(info $(NEWLINE))
 	$(info Classification has finished, results can be found in: $(output_data))
 
 $(processed_data): $(input_data)
