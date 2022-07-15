@@ -16,13 +16,13 @@ output_data ?= $(default_output_data)
 models ?= $(notdir $(wildcard src/models/*.py))
 
 # input path substitution to build full output path
-default_input_dir_list = $(subst /, ,$(default_input_data))
-custom_input_dir_list = $(subst /, ,$(input_data))
+default_processed_dir_list = $(subst /, ,$(default_processed_data))
+custom_processed_dir_list = $(subst /, ,$(processed_data))
 
-custom_input_only_dir_list = $(filter-out $(default_input_dir_list), $(custom_input_dir_list))
-final_custom_input_only_dir_list = $(patsubst %.csv,%.png,$(custom_input_only_dir_list))
+custom_processed_only_dir_list = $(filter-out $(default_processed_dir_list), $(custom_processed_dir_list))
+final_custom_processed_only_dir_list = $(patsubst %.csv,%.png,$(custom_processed_only_dir_list))
 
-custom_output_path = $(subst $(space),/,$(final_custom_input_only_dir_list))
+custom_output_path = $(subst $(space),/,$(final_custom_processed_only_dir_list))
 
 all: clean run
 
