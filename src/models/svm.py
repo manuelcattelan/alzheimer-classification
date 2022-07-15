@@ -74,7 +74,7 @@ def run_clf(clf, cv, input_path, output_path):
     task_cm = sum(cm for cm in splits_cm)
     task_performance = compute_clf_performance(task_cm)
     # export task results to file
-    export_clf_performance(task_cm, task_performance, labels_space, input_path, output_path)
+    export_clf_performance(task_cm, task_performance, labels_space, output_path)
 
     return task_performance, task_time
 
@@ -107,11 +107,11 @@ def compute_clf_best_task(tasks_results, tasks_times, p_metric):
 
     return (best_task_accuracy, best_task_precision, best_task_recall, best_task_f1score), best_task_time, best_task_index
 
-def export_clf_performance(cm, performance, labels, input_path, output_path):
+def export_clf_performance(cm, performance, labels, output_path):
     output_dirname = Path(os.path.dirname(output_path))
     output_dirname.mkdir(parents=True, exist_ok=True)
-    output_path = Path(output_path)
-    output_path = (output_path.with_suffix('')).with_suffix('.png')
+    output_path_without_suffix = str(Path(output_path).with_suffix('')) + '_cm'
+    output_path_with_suffix = Path(output_path_without_suffix).with_suffix('.png')
 
     # map boolean labels to strings
     labels = [*map(({0: 'Sano', 1: 'Malato'}).get, labels)]
@@ -127,7 +127,7 @@ def export_clf_performance(cm, performance, labels, input_path, output_path):
     ax.set_ylabel('Actual values')
 
     # Export heatmap to output path
-    plt.savefig(output_path, bbox_inches="tight", dpi=400) 
+    plt.savefig(output_path_with_suffix, bbox_inches="tight", dpi=400) 
     plt.close()
 
 def recursive_input_scan(input_root, output_root, input_paths=defaultdict(list), output_paths=defaultdict(list)):
