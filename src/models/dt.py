@@ -176,15 +176,16 @@ def main():
                         metavar='<output_dir>',
                         help='output directory where results are stored',
                         required=True)
-    args = parser.parse_args()
-    args = vars(args)
 
     # store parsed arguments
+    args = parser.parse_args()
+    args = vars(args)
     input_path = Path(args['i'])
     output_path = Path(args['o'])
 
-    # check output argument validity by checking
-    # if it ends with any extension
+    # check output argument validity by checking its extension:
+    # if input is file -> output must be file with csv extension
+    # if input is dir  -> output must be dir without any extension
     output_path_extension = (os.path.splitext(output_path))[1]
 
     # if input argument is not an existing file or directory, raise exception
@@ -216,27 +217,29 @@ def main():
         # define classifier and cross validator
         clf = tree.DecisionTreeClassifier()
         cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
-        # traverse input directory and find all .csv files
-        input_paths, output_paths = recursive_input_scan(input_path, output_path)
 
+        # recursively scan input directory for any csv file 
+        # and store input/output path lists
+        input_paths, output_paths = recursive_input_scan(input_path, output_path)
         # for each dir inside input argument, make classification on all files inside of it 
         for input_dir, output_dir in zip(input_paths, output_paths):
             # list of files inside dir
-            input_filepaths = input_paths[input_dir]
-            output_filepaths = output_paths[output_dir]
+            input_filepaths = sorted(input_paths[input_dir])
+            output_filepaths = sorted(output_paths[output_dir])
 
+            # if there's only one file inside of dir, run single file classification
             if len(input_filepaths) == 1:
                 # run classification on file
-                run_clf(clf, cv, input_filepaths[0], output_filepaths[0])
+                results, time = run_clf(clf, cv, input_filepaths[0], output_filepaths[0])
                 print('Classification on {} took {:.3f}s:'
                       .format(input_filepaths[0], time))
                 print('Accuracy: {:.1f}%\nPrecision: {:.1f}%\nRecall: {:.1f}%\nF1 score: {:.1f}%'
                       .format(results[0], results[1], results[2], results[3]))
 
             else:
-                # list where each task result is stored
+                # list where each file classification result is stored
                 input_results = []
-                # list where each task time is stored
+                # list where each file classification time is stored
                 input_times = []
                 # run classification on each file inside input dir
                 for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
