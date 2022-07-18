@@ -1,3 +1,4 @@
+from sklearn.preprocessing import MinMaxScaler
 from pathlib import Path
 from scipy import stats
 import pandas as pd
@@ -41,18 +42,11 @@ def normalize_data(df_to_normalize):
                                         df_to_normalize.columns.get_loc(contiguous_columns[1]) + 1] 
     # get features names from range of features
     features_to_normalize = df_to_normalize.columns[features_to_normalize_range]
-
-    # iterate over each feature that needs to be normalized
-    for feature in features_to_normalize:
-        # get min and max values from feature column
-        max_value = df_to_normalize[feature].max()
-        min_value = df_to_normalize[feature].min()
-        # if feature column only contains 0s, store 0.0
-        if (max_value - min_value) == 0:
-            df_normalized[feature] = float(0)
-        # if feature column does not contain 0s only, replace each entry with normalized value
-        else:
-            df_normalized[feature] = (df_normalized[feature] - min_value) / (max_value - min_value)
+    # initialize min max scaler and apply to dataframe to normalize
+    scaler = MinMaxScaler()
+    df_normalized[features_to_normalize] = scaler.fit_transform(df_to_normalize[features_to_normalize])
+    df_inverted = df_normalized.copy()
+    df_inverted[features_to_normalize] = scaler.inverse_transform(df_normalized[features_to_normalize])
 
     return df_normalized
 
