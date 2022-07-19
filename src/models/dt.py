@@ -1,5 +1,5 @@
 from sklearn import tree
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import confusion_matrix
 from collections import defaultdict
 from pathlib import Path
@@ -74,8 +74,8 @@ def run_clf(clf, cv, input_path, output_path):
     task_cm = sum(cm for cm in splits_cm)
     task_performance = compute_clf_performance(task_cm)
     # export task results to file
-    export_clf_performance(task_cm, task_performance, labels_space, output_path)
-    export_clf_representation(clf, X, y, features, labels_space, output_path, task_index_list)
+    # export_clf_performance(task_cm, task_performance, labels_space, output_path)
+    # export_clf_representation(clf, X, y, features, labels_space, output_path, task_index_list)
 
     return task_performance, task_time
 
@@ -181,7 +181,12 @@ def main():
     parser.add_argument('-s',
                         type=int,
                         metavar='<n_splits>',
-                        help='number of splits used for k-fold cross validation',
+                        help='number of splits of k-fold cross validation',
+                        default=10)
+    parser.add_argument('-r',
+                        type=int,
+                        metavar='<n_repeats>',
+                        help='number of runs of k-fold cross validation',
                         default=10)
     parser.add_argument('-m',
                         type=str,
@@ -217,7 +222,7 @@ def main():
 
         # define classifier and cross validator
         clf = tree.DecisionTreeClassifier()
-        cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
+        cv = RepeatedStratifiedKFold(n_splits=args['s'], n_repeats=args['r'])
 
         print('\nRunning {} on {} ...'
                 .format(argparse._sys.argv[0], input_path))
@@ -236,7 +241,7 @@ def main():
 
         # define classifier and cross validator
         clf = tree.DecisionTreeClassifier()
-        cv = StratifiedKFold(n_splits=args['s'], shuffle=True)
+        cv = RepeatedStratifiedKFold(n_splits=args['s'], n_repeats=args['r'])
 
         print('\nRunning {} on {} ...'
               .format(argparse._sys.argv[0], input_path))
