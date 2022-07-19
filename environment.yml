@@ -2,6 +2,7 @@ channels:
   - defaults
 dependencies:
   - scikit-learn
+  - seaborn
   - flake8
   - pandas
   - numpy
