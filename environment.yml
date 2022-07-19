@@ -1,8 +1,8 @@
-name: alzheimer-thesis
 channels:
   - defaults
 dependencies:
   - scikit-learn
+  - flake8
   - pandas
   - numpy
   - pip
