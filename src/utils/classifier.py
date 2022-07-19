@@ -1,11 +1,13 @@
-from src.utils.preprocessing import *
-from src.utils.performance import compute_clf_performance
 from sklearn.metrics import confusion_matrix
-import time
+from src.utils.performance import compute_clf_performance
 import pandas as pd
 import numpy as np
+import time
 
-def init_clf(task):
+def init_clf(input_path):
+    # read input file as dataframe
+    task = pd.read_csv(input_path, sep=';')
+
     # get range of all model features
     contiguous_columns = ['DurationTot', 'Instruction']
     features_range = np.r_[task.columns.get_loc(contiguous_columns[0]):
@@ -14,7 +16,11 @@ def init_clf(task):
     model_features = task.columns[features_range]
     model_label = task.columns[-1]
 
-    return model_features, model_label
+    # create two subframes containing only model features and model label
+    X = task[model_features]
+    y = task[model_label]
+
+    return X, y, model_features, model_label, task.index
 
 def train_clf(clf, X, y, train_index):
     # define training subframe for current split training index
@@ -39,15 +45,9 @@ def test_clf(clf, X, y, test_index):
 def run_clf(clf, cv, input_path, output_path):
     # list where each split confusion matrix is stored
     splits_cm = []
-    # read input file as dataframe
-    task = build_data(input_path, output_path)
 
     # get dataframes used for classification
-    features, label = init_clf(task)
-
-    # create two subframes containing only model features and model label
-    X = task[features]
-    y = task[label]
+    X, y, features, label, task_index_list = init_clf(input_path)
     # get unique namespace of possible labels
     labels_space = np.unique(y)
 
