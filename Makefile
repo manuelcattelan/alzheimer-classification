@@ -12,6 +12,9 @@ create_environment:
 update_environment:
 	conda env update --name $(ENV_NAME) --file environment.yml
 
+lint:
+	flake8 src
+
 dataset:
 	python3 src/data/make_dataset.py -i $(raw) -o $(processed)
 
