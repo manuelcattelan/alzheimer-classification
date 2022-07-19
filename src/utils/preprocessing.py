@@ -6,7 +6,6 @@ import numpy as np
 import os
 
 def map_data(df_to_map):
-    df_to_map = df_to_map.copy() 
     df_mapped = df_to_map.copy()
 
     # mapping dictionaries for string to numeric features
@@ -22,7 +21,7 @@ def map_data(df_to_map):
     return df_mapped
 
 def clean_data(df_to_clean):
-    df_to_clean = df_to_clean.copy()
+    df_cleaned = df_to_clean.copy()
 
     # get range of features to clean
     contiguous_columns = ['DurationTot', 'AveragePenPressureVar']
@@ -45,7 +44,6 @@ def clean_data(df_to_clean):
     return df_cleaned
 
 def normalize_data(df_to_normalize):
-    df_to_normalize = df_to_normalize.copy()
     df_normalized = df_to_normalize.copy()
 
     # get range of features that need to be normalized
@@ -56,26 +54,22 @@ def normalize_data(df_to_normalize):
                                         df_to_normalize.columns.get_loc(contiguous_columns[1]) + 1] 
     # get features names from range of features
     features_to_normalize = df_to_normalize.columns[features_to_normalize_range]
+
     # initialize min max scaler and apply to dataframe to normalize
     scaler = MinMaxScaler()
     df_normalized[features_to_normalize] = scaler.fit_transform(df_to_normalize[features_to_normalize])
-    df_inverted = df_normalized.copy()
-    df_inverted[features_to_normalize] = scaler.inverse_transform(df_normalized[features_to_normalize])
 
-    return df_normalized
+    return df_normalized, scaler
 
-def build_data(input_path, output_path):
+def run_preprocessing(input_path, output_path):
     # read input path as dataframe
     df_raw = pd.read_csv(input_path, sep=';', converters={'Sex': str.strip,
                                                           'Work': str.strip,
                                                           'Label': str.strip})
-    # entire preprocessing
+    # standard preprocessing
     df_mapped = map_data(df_raw)
     df_cleaned = clean_data(df_mapped)
-    df_normalized = normalize_data(df_cleaned)
 
     output_dirname = Path(os.path.dirname(output_path))
     output_dirname.mkdir(parents=True, exist_ok=True)
-    df_normalized.to_csv(output_path, sep=';', index=False)
-
-    return df_normalized
+    df_cleaned.to_csv(output_path, sep=';', index=False)
