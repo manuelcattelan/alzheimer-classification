@@ -1,0 +1,10 @@
+name: alzheimer-thesis
+channels:
+  - defaults
+dependencies:
+  - scikit-learn
+  - pandas
+  - numpy
+  - pip
+  - pip:
+    - -e .
