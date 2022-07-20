@@ -9,12 +9,12 @@ import os
 def map_data(df_to_map):
     df_mapped = df_to_map.copy()
 
-    # mapping dictionaries for string to numeric features
+    # mapping dictionaries for strings to numeric features
     sex_map = {"Maschile": 0, "Femminile": 1}
     work_map = {"Manuale": 0, "Intellettuale": 1}
     label_map = {"Sano": 0, "Malato": 1}
 
-    # map dataframe with mapping dictionaries
+    # map dataframe with defined dictionaries
     df_mapped["Sex"] = df_to_map["Sex"].map(sex_map)
     df_mapped["Work"] = df_to_map["Work"].map(work_map)
     df_mapped["Label"] = df_to_map["Label"].map(label_map)
@@ -25,22 +25,29 @@ def map_data(df_to_map):
 def clean_data(df_to_clean):
     df_cleaned = df_to_clean.copy()
 
-    # get range of features to clean
-    contiguous_columns = ["DurationTot", "AveragePenPressureVar"]
-    features_to_clean_range = np.r_[df_to_clean.columns.get_loc(contiguous_columns[0]) : 
-                                    df_to_clean.columns.get_loc(contiguous_columns[1]) + 1]
+    # define range of features that need to be cleaned
+    # adjacent columns are defined as range between two outmost columns
+    adjacent_feature_columns = ["DurationTot", "AveragePenPressureVar"]
+    # define numeric features range from outmost feature columns
+    features_to_clean = np.r_[
+            df_to_clean.columns.get_loc(adjacent_feature_columns[0]) : 
+            df_to_clean.columns.get_loc(adjacent_feature_columns[1]) + 1
+            ]
     # create mask for all rows which only contain 0's
-    rows_to_drop_mask = df_to_clean.iloc[:, features_to_clean_range].eq(0).all(1)
-    # get list of indexes for rows that match mask
-    rows_to_drop = list(df_to_clean[rows_to_drop_mask].index.values)
+    rows_to_drop_mask = (df_to_clean.iloc[:, features_to_clean]
+            .eq(0)
+            .all(1)
+            )
+    # get list of indexes for rows that match defined mask
+    rows_to_drop_index = list(df_to_clean[rows_to_drop_mask].index.values)
 
-    # drop selected rows from raw dataframe
-    df_cleaned = df_to_clean.drop(rows_to_drop)
-    # # drop columns which only contain 0's
+    # drop selected rows from dataframe
+    df_cleaned = df_to_clean.drop(rows_to_drop_index)
+    # drop columns which only contain 0's
     df_cleaned = df_cleaned.loc[:, (df_cleaned != 0).any(axis=0)]
-    # remove rows that have outliers in at least one column
+    # drop rows that have outliers in at least one column
     df_cleaned = df_cleaned[(np.abs(stats.zscore(df_cleaned)) < 3).all(axis=1)]
-    # # drop columns which only contain 0's
+    # drop columns which only contain 0's after removing outliers
     df_cleaned = df_cleaned.loc[:, (df_cleaned != 0).any(axis=0)]
 
     return df_cleaned
@@ -49,20 +56,35 @@ def clean_data(df_to_clean):
 def normalize_data(df_to_normalize):
     df_normalized = df_to_normalize.copy()
 
-    # get range of features that need to be normalized
-    non_contiguous_columns = ["Age", "Instruction"]
-    contiguous_columns = ["DurationTot", "NumOfStrokes"]
-    features_to_normalize_range = np.r_[df_to_normalize.columns.get_indexer(non_contiguous_columns),
-                                        df_to_normalize.columns.get_loc(contiguous_columns[0]) : 
-                                        df_to_normalize.columns.get_loc(contiguous_columns[1]) + 1]
-    # get features names from range of features
-    features_to_normalize = df_to_normalize.columns[features_to_normalize_range]
+    # define range of features that need to be normalized
+    # non adjacent columns are the one which are not contiguous
+    # adjacent columns are defines as range between two outmost columns
+    non_adjacent_feature_columns = ["Age", "Instruction"]
+    adjacent_feature_columns = ["DurationTot", "NumOfStrokes"]
+    # define numeric features range from feature columns
+    features_to_normalize = np.r_[
+            df_to_normalize.columns.get_indexer(non_adjacent_feature_columns),
+            df_to_normalize.columns.get_loc(adjacent_feature_columns[0]) : 
+            df_to_normalize.columns.get_loc(adjacent_feature_columns[1]) + 1
+            ]
+    # define features names from range of features
+    features_to_normalize_name = df_to_normalize.columns[features_to_normalize]
 
-    # initialize min max scaler and apply to dataframe to normalize
+    # initialize min max scaler and apply it to dataframe to normalize
     scaler = MinMaxScaler()
-    df_normalized[features_to_normalize] = scaler.fit_transform(df_to_normalize[features_to_normalize])
+    df_normalized[features_to_normalize_name] = scaler.fit_transform(
+            df_to_normalize[features_to_normalize_name]
+            )
 
     return df_normalized, scaler
+
+
+def export_data(df_to_export, output_path):
+    # retrieve dirname of output path and create it if it does not exist
+    output_dirname = Path(os.path.dirname(output_path))
+    output_dirname.mkdir(parents=True, exist_ok=True)
+    # export df given as argument
+    df_to_export.to_csv(output_path, sep=";", index=False)
 
 
 def run_preprocessing(input_path):
@@ -70,7 +92,7 @@ def run_preprocessing(input_path):
     df_raw = pd.read_csv(input_path, sep=";", converters={"Sex": str.strip,
                                                           "Work": str.strip,
                                                           "Label": str.strip})
-    # standard preprocessing
+    # run standard preprocessing
     df_mapped = map_data(df_raw)
     df_cleaned = clean_data(df_mapped)
 
