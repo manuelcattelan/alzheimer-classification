@@ -19,7 +19,7 @@ def main():
             type=str,
             metavar="<input_file/dir>",
             help=("input path of file to use for classification or directory "
-                "containing files to use for classification"),
+                  "containing files to use for classification"),
             required=True,
             )
     parser.add_argument(
@@ -41,7 +41,7 @@ def main():
             type=str,
             metavar="<p_metric>",
             help=("performance metric used to determine best performing task "
-                "when running dir classification"),
+                  "when running dir classification"),
             default="accuracy",
             )
     parser.add_argument(
@@ -49,7 +49,7 @@ def main():
             type=str,
             metavar="<output_file/dir>",
             help=("output path of file with classification results or "
-                "directory containing files with classification results"),
+                  "directory containing files with classification results"),
             required=True,
             )
 
@@ -86,23 +86,27 @@ def main():
                 )
         # run classification on file
         (splits_cm,
-        splits_train_time,
-        splits_test_time) = run_classification(dt, cv, input_path)
+         splits_train_time,
+         splits_test_time) = run_classification(
+                dt, cv, input_path
+                )
         # compute classifier performance
         (task_performance,
-        task_train_time,
-        task_test_time) = compute_classifier_performance(
+         task_train_time,
+         task_test_time) = compute_classifier_performance(
                 splits_cm, splits_train_time, splits_test_time
                 )
         # print classification results
-        print("Classification results for {}:"
-                "\n\tTimes:>>>"
-                "\n\t\tTraining time: {:.5f}s"
+        print(
+                "Classification results for {}:"
+                "\n\tTimes:"
+                "\n\t\t>>> Training time: {:.5f}s"
                 "\n\t\t>>> Testing time: {:.5f}s".format(
                     input_path, task_train_time, task_test_time
                     )
                 )
-        print("\tPerformance:"
+        print(
+                "\tPerformance:"
                 "\n\t\t>>> Accuracy: {:.3f}%"
                 "\n\t\t>>> Precision: {:.3f}%"
                 "\n\t\t>>> Recall: {:.3f}%"
@@ -130,7 +134,10 @@ def main():
                 )
         # get input file path and build corresponding output file path
         # of all files inside input directory
-        input_paths, output_paths = scan_input_dir(input_path, output_path)
+        (input_paths,
+         output_paths) = scan_input_dir(
+                input_path, output_path
+                )
         # for each directory found while traversing input dir
         for input_dirpath, output_dirpath in zip(
                 sorted(input_paths),
@@ -145,23 +152,27 @@ def main():
             if len(input_filepaths) == 1:
                 # run classification on file
                 (splits_cm,
-                splits_train_time,
-                splits_test_time) = run_classification(dt, cv, input_path)
+                 splits_train_time,
+                 splits_test_time) = run_classification(
+                        dt, cv, input_path
+                        )
                 # compute classifier performance
                 (task_performance,
-                task_train_time,
-                task_test_time) = compute_classifier_performance(
+                 task_train_time,
+                 task_test_time) = compute_classifier_performance(
                         splits_cm, splits_train_time, splits_test_time
                         )
                 # print classification results
-                print("Classification results for {}:"
-                        "\n\tTimes:>>>"
-                        "\n\t\tTraining time: {:.5f}s"
+                print(
+                        "Classification results for {}:"
+                        "\n\tTimes:"
+                        "\n\t\t>>> Training time: {:.5f}s"
                         "\n\t\t>>> Testing time: {:.5f}s".format(
                             input_path, task_train_time, task_test_time
                             )
                         )
-                print("\tPerformance:"
+                print(
+                        "\tPerformance:"
                         "\n\t\t>>> Accuracy: {:.3f}%"
                         "\n\t\t>>> Precision: {:.3f}%"
                         "\n\t\t>>> Recall: {:.3f}%"
@@ -189,14 +200,14 @@ def main():
                         ):
                     # run classification on file
                     (splits_cm,
-                    splits_train_time,
-                    splits_test_time) = run_classification(
+                     splits_train_time,
+                     splits_test_time) = run_classification(
                             dt, cv, input_filepath
                             )
                     # compute classifier results
                     (task_performance,
-                    task_train_time,
-                    task_test_time) = compute_classifier_performance(
+                     task_train_time,
+                     task_test_time) = compute_classifier_performance(
                             splits_cm, splits_train_time, splits_test_time
                             )
                     # store classification results
@@ -206,9 +217,9 @@ def main():
 
                 # compute best task
                 (best_task_performance,
-                best_task_train_time,
-                best_task_test_time,
-                best_task_index) = compute_best_task_performance(
+                 best_task_train_time,
+                 best_task_test_time,
+                 best_task_index) = compute_best_task_performance(
                     tasks_performance,
                     tasks_train_time,
                     tasks_test_time,
@@ -221,30 +232,35 @@ def main():
                 avg_train_time = np.mean([time for time in tasks_train_time])
                 avg_test_time = np.mean([time for time in tasks_test_time])
 
-                # print classification results 
-                print("Classification for {} took:"
-                        "\n\tTotal times (all tasks)"
+                # print classification results
+                print(
+                        "Classification for {} took:"
+                        "\n\tTotal times (all tasks):"
                         "\n\t\t>>> {:.5f}s for training"
                         "\n\t\t>>> {:.5f}s for testing".format(
-                            input_dir, total_training_time, total_testing_time
+                            input_dirpath, total_train_time, total_test_time
                             )
                         )
-                print("\tAverage times (per task)"
+                print(
+                        "\tAverage times (per task):"
                         "\n\t\t>>> {:.5f}s for training"
                         "\n\t\t>>> {:.5f}s for testing".format(
-                            avg_training_time, avg_testing_time
+                            avg_train_time, avg_test_time
                             )
                         )
-                print("Best performing task for {} was T{}"
-                        ":\n\tTimes:\n\t\t>>> Training time: {:.5f}s"
+                print(
+                        "Best performing task for {} was T{}:"
+                        "\n\tTimes:"
+                        "\n\t\t>>> Training time: {:.5f}s"
                         "\n\t\t>>> Testing time: {:.5f}s".format(
-                            input_dir,
+                            input_dirpath,
                             best_task_index,
                             best_task_train_time,
                             best_task_test_time
                             )
                         )
-                print("\tPerformance:"
+                print(
+                        "\tPerformance:"
                         "\n\t\t>>> Accuracy: {:.3f}%"
                         "\n\t\t>>> Precision: {:.3f}%"
                         "\n\t\t>>> Recall: {:.3f}%"

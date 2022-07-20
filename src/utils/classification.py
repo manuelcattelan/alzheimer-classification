@@ -47,7 +47,7 @@ def run_classification(clf, cv, input_path):
     # adjacent columns are defined as range between two outmost columns
     adjacent_feature_columns = ["DurationTot", "Instruction"]
     features = np.r_[
-            task.columns.get_loc(adjacent_feature_columns[0]) : 
+            task.columns.get_loc(adjacent_feature_columns[0]):
             task.columns.get_loc(adjacent_feature_columns[1]) + 1
             ]
     # get model feature names and label name
@@ -64,11 +64,11 @@ def run_classification(clf, cv, input_path):
     for train_index, test_index in cv.split(X, y):
         # train classifier
         (trained_clf,
-        training_time) = train_classifier(clf, X, y, train_index)
+         training_time) = train_classifier(clf, X, y, train_index)
         # test classifier
         (true_labels,
-        predicted_labels,
-        testing_time) = test_classifier(clf, X, y, test_index)
+         predicted_labels,
+         testing_time) = test_classifier(clf, X, y, test_index)
         # store results
         splits_cm.append(confusion_matrix(true_labels, predicted_labels))
         splits_train_time.append(training_time)

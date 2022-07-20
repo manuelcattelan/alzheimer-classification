@@ -30,14 +30,15 @@ def clean_data(df_to_clean):
     adjacent_feature_columns = ["DurationTot", "AveragePenPressureVar"]
     # define numeric features range from outmost feature columns
     features_to_clean = np.r_[
-            df_to_clean.columns.get_loc(adjacent_feature_columns[0]) : 
+            df_to_clean.columns.get_loc(adjacent_feature_columns[0]):
             df_to_clean.columns.get_loc(adjacent_feature_columns[1]) + 1
             ]
     # create mask for all rows which only contain 0's
-    rows_to_drop_mask = (df_to_clean.iloc[:, features_to_clean]
-            .eq(0)
-            .all(1)
-            )
+    rows_to_drop_mask = (
+                df_to_clean.iloc[:, features_to_clean]
+                .eq(0)
+                .all(1)
+                )
     # get list of indexes for rows that match defined mask
     rows_to_drop_index = list(df_to_clean[rows_to_drop_mask].index.values)
 
@@ -64,7 +65,7 @@ def normalize_data(df_to_normalize):
     # define numeric features range from feature columns
     features_to_normalize = np.r_[
             df_to_normalize.columns.get_indexer(non_adjacent_feature_columns),
-            df_to_normalize.columns.get_loc(adjacent_feature_columns[0]) : 
+            df_to_normalize.columns.get_loc(adjacent_feature_columns[0]):
             df_to_normalize.columns.get_loc(adjacent_feature_columns[1]) + 1
             ]
     # define features names from range of features

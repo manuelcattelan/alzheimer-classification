@@ -14,16 +14,16 @@ def main():
             "--input",
             type=str,
             metavar="<input_file/dir>",
-            help=("input path of file to preprocess or directory containing "
-                "files to preprocess"),
+            help=("input path of file in .csv format to preprocess or "
+                  "directory containing files in .csv format to preprocess"),
             required=True,
             )
     parser.add_argument(
             "--output",
             type=str,
             metavar="<output_file/dir>",
-            help=("output path of preprocessed file or directory containing "
-                "preprocessed files"),
+            help=("output path of preprocessed file in .csv format or "
+                  "directory containing preprocessed files in .csv format"),
             required=True,
             )
 
@@ -53,9 +53,13 @@ def main():
                     )
 
         # preprocess file pointed by input path
-        df_processed = run_preprocessing(input_path)
+        df_processed = run_preprocessing(
+                input_path
+                )
         # export processed file to output path
-        export_data(df_processed, output_path)
+        export_data(
+                df_processed, output_path
+                )
 
     # if input argument points to directory
     if os.path.isdir(input_path):
@@ -67,7 +71,10 @@ def main():
 
         # get input file path and build corresponding output file path
         # of all files inside input directory
-        input_paths, output_paths = scan_input_dir(input_path, output_path)
+        (input_paths,
+         output_paths) = scan_input_dir(
+                input_path, output_path
+                )
         # for each directory found while traversing input dir
         for input_dirpath, output_dirpath in zip(
                 sorted(input_paths),
@@ -77,9 +84,13 @@ def main():
                     sorted(input_paths[input_dirpath]),
                     sorted(output_paths[output_dirpath])):
                 # preprocess file pointed by input filepath
-                df_processed = run_preprocessing(input_filepath)
+                df_processed = run_preprocessing(
+                        input_filepath
+                        )
                 # export preprocessed file to output filepath
-                export_data(df_processed, output_filepath)
+                export_data(
+                        df_processed, output_filepath
+                        )
 
 
 if __name__ == "__main__":
