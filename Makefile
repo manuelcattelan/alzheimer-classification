@@ -16,7 +16,7 @@ lint:
 	flake8 src
 
 dataset:
-	python3 src/data/make_dataset.py -i $(raw) -o $(processed)
+	python3 src/data/make_dataset.py --input $(raw) --output $(processed)
 
 clean:
 	find . -type f -name "*.py[co]" -delete
