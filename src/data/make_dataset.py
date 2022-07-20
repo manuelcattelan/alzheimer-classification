@@ -2,27 +2,28 @@ from src.utils.preprocessing import map_data
 from src.utils.preprocessing import clean_data
 from src.utils.preprocessing import run_preprocessing
 from src.utils.input import input_scan_list
+from pathlib import Path
 import argparse
 import os
 
 def main():
     # set up parser and possible arguments
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-i',
+    parser.add_argument('--input',
                         type=str,
                         metavar='<input_file/dir>',
-                        help='input file or directory to process',
+                        help='input path to file or directory to process',
                         required=True)
-    parser.add_argument('-o',
+    parser.add_argument('--output',
                         type=str,
                         metavar='<output_file/dir>',
-                        help='output file or directory where processed data is saved',
+                        help='output path to file or directory where processed data is saved',
                         required=True)
 
     # store parsed arguments
     args = parser.parse_args()
-    input_path = args.i
-    output_path = args.o
+    input_path = args.input
+    output_path = args.output
 
     # if input argument is not an existing file or directory, raise exception
     if (not(os.path.isfile(input_path)) and not(os.path.isdir(input_path))):
@@ -40,7 +41,11 @@ def main():
             raise ValueError(str(output_path) + ' is not a valid csv file path' )
 
         # preprocess input file
-        run_preprocessing(input_path, output_path)
+        df_processed = run_preprocessing(input_path)
+        # export processed df
+        output_dirname = Path(os.path.dirname(output_path))
+        output_dirname.mkdir(parents=True, exist_ok=True)
+        df_processed.to_csv(output_path, sep=';', index=False)
 
     # check if input argument points to directory
     if (os.path.isdir(input_path)):
@@ -52,7 +57,11 @@ def main():
         input_paths, output_paths = input_scan_list(input_path, output_path)
         # preprocess each file inside input dir
         for input_path, output_path in zip(input_paths, output_paths):
-            run_preprocessing(input_path, output_path)
+            df_processed = run_preprocessing(input_path)
+            # export processed df
+            output_dirname = Path(os.path.dirname(output_path))
+            output_dirname.mkdir(parents=True, exist_ok=True)
+            df_processed.to_csv(output_path, sep=';', index=False)
 
 if __name__ == '__main__':
     main()

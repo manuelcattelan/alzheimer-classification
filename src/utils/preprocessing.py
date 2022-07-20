@@ -61,7 +61,7 @@ def normalize_data(df_to_normalize):
 
     return df_normalized, scaler
 
-def run_preprocessing(input_path, output_path):
+def run_preprocessing(input_path):
     # read input path as dataframe
     df_raw = pd.read_csv(input_path, sep=';', converters={'Sex': str.strip,
                                                           'Work': str.strip,
@@ -70,6 +70,4 @@ def run_preprocessing(input_path, output_path):
     df_mapped = map_data(df_raw)
     df_cleaned = clean_data(df_mapped)
 
-    output_dirname = Path(os.path.dirname(output_path))
-    output_dirname.mkdir(parents=True, exist_ok=True)
-    df_cleaned.to_csv(output_path, sep=';', index=False)
+    return df_cleaned
