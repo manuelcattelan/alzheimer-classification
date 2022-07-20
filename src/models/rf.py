@@ -86,7 +86,7 @@ def main():
                 n_repeats=args.repeats
                 )
         # read input file as dataframe
-        df = pd.read_csv(input_filepath, sep=";")
+        df = pd.read_csv(input_path, sep=";")
         # run classification on file
         (splits_cm,
          splits_train_time,
@@ -154,7 +154,7 @@ def main():
             # run single file classification
             if len(input_filepaths) == 1:
                 # read input file as dataframe
-                df = pd.read_csv(input_filepath, sep=";")
+                df = pd.read_csv(input_filepaths[0], sep=";")
                 # run classification on file
                 (splits_cm,
                  splits_train_time,
