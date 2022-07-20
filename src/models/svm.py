@@ -105,14 +105,14 @@ def main():
         # print classification results
         print(
                 "Classification results for {}:"
-                "\n\tTimes:"
-                "\n\t\t>>> Training time: {:.5f}s"
-                "\n\t\t>>> Testing time: {:.5f}s".format(
+                "\n\tClassification time:"
+                "\n\t\t>>> Training: {:.5f}s"
+                "\n\t\t>>> Testing: {:.5f}s".format(
                     input_path, task_train_time, task_test_time
                     )
                 )
         print(
-                "\tPerformance:"
+                "\tClassification performance:"
                 "\n\t\t>>> Accuracy: {:.3f}%"
                 "\n\t\t>>> Precision: {:.3f}%"
                 "\n\t\t>>> Recall: {:.3f}%"
@@ -174,14 +174,14 @@ def main():
                 # print classification results
                 print(
                         "Classification results for {}:"
-                        "\n\tTimes:"
-                        "\n\t\t>>> Training time: {:.5f}s"
-                        "\n\t\t>>> Testing time: {:.5f}s".format(
+                        "\n\tClassification time:"
+                        "\n\t\t>>> Training: {:.5f}s"
+                        "\n\t\t>>> Testing: {:.5f}s".format(
                             input_path, task_train_time, task_test_time
                             )
                         )
                 print(
-                        "\tPerformance:"
+                        "\tClassification performance:"
                         "\n\t\t>>> Accuracy: {:.3f}%"
                         "\n\t\t>>> Precision: {:.3f}%"
                         "\n\t\t>>> Recall: {:.3f}%"
@@ -247,24 +247,24 @@ def main():
                 # print classification results
                 print(
                         "Classification for {} took:"
-                        "\n\tTotal times (all tasks):"
-                        "\n\t\t>>> {:.5f}s for training"
-                        "\n\t\t>>> {:.5f}s for testing".format(
+                        "\n\tTotal classification time (all tasks):"
+                        "\n\t\t>>> Training: {:.5f}s"
+                        "\n\t\t>>> Testing: {:.5f}s".format(
                             input_dirpath, total_train_time, total_test_time
                             )
                         )
                 print(
-                        "\tAverage times (per task):"
-                        "\n\t\t>>> {:.5f}s for training"
-                        "\n\t\t>>> {:.5f}s for testing".format(
+                        "\tAverage classification time (per task):"
+                        "\n\t\t>>> Training: {:.5f}s"
+                        "\n\t\t>>> Testing: {:.5f}s".format(
                             avg_train_time, avg_test_time
                             )
                         )
                 print(
-                        "Best performing task for {} was T{}:"
-                        "\n\tTimes:"
-                        "\n\t\t>>> Training time: {:.5f}s"
-                        "\n\t\t>>> Testing time: {:.5f}s".format(
+                        "\tBest performing task for {} was T{}:"
+                        "\n\t\tClassification time:"
+                        "\n\t\t\t>>> Training: {:.5f}s"
+                        "\n\t\t\t>>> Testing: {:.5f}s".format(
                             input_dirpath,
                             best_task_index + 1,
                             best_task_train_time,
@@ -272,11 +272,11 @@ def main():
                             )
                         )
                 print(
-                        "\tPerformance:"
-                        "\n\t\t>>> Accuracy: {:.3f}%"
-                        "\n\t\t>>> Precision: {:.3f}%"
-                        "\n\t\t>>> Recall: {:.3f}%"
-                        "\n\t\t>>> F1 Score: {:.3f}%".format(
+                        "\t\tClassification performance:"
+                        "\n\t\t\t>>> Accuracy: {:.3f}%"
+                        "\n\t\t\t>>> Precision: {:.3f}%"
+                        "\n\t\t\t>>> Recall: {:.3f}%"
+                        "\n\t\t\t>>> F1 Score: {:.3f}%".format(
                             best_task_performance[0],
                             best_task_performance[1],
                             best_task_performance[2],
