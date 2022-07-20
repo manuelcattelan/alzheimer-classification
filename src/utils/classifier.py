@@ -1,5 +1,4 @@
 from sklearn.metrics import confusion_matrix
-from src.utils.performance import compute_clf_performance
 import pandas as pd
 import numpy as np
 import time
@@ -61,9 +60,7 @@ def run_classification(clf, cv, input_path):
     # for each different split, test and train classifier
     for train_index, test_index in cv.split(X, y):
         trained_clf, training_time = train_classifier(clf, X, y, train_index)
-        true_labels, predicted_labels, testing_time = test_classifier(
-            clf, X, y, test_index
-        )
+        true_labels, predicted_labels, testing_time = test_classifier(clf, X, y, test_index)
         splits_cm.append(confusion_matrix(true_labels, predicted_labels))
         splits_train_time.append(training_time)
         splits_test_time.append(testing_time)
