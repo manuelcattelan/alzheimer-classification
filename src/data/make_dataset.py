@@ -1,5 +1,3 @@
-from src.utils.preprocessing import map_data
-from src.utils.preprocessing import clean_data
 from src.utils.preprocessing import run_preprocessing
 from src.utils.input import scan_input_to_list
 from pathlib import Path
@@ -9,20 +7,22 @@ import os
 
 def main():
     # set up parser and possible arguments
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "--input",
-        type=str,
-        metavar="<input_file/dir>",
-        help="input path to file or directory to process",
-        required=True,
+    parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
-        "--output",
-        type=str,
-        metavar="<output_file/dir>",
-        help="output path to file or directory where processed data is saved",
-        required=True,
+            "--input",
+            type=str,
+            metavar="<input_file/dir>",
+            help="input path to file or directory to process",
+            required=True,
+    )
+    parser.add_argument(
+            "--output",
+            type=str,
+            metavar="<output_file/dir>",
+            help="output path to file or directory where processed data is saved",
+            required=True,
     )
 
     # store parsed arguments
