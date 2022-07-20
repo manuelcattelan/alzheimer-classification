@@ -43,12 +43,15 @@ def run_classification(clf, cv, input_path):
     # read input file as dataframe
     task = pd.read_csv(input_path, sep=";")
 
-    # get range of all model features
-    contiguous_columns = ["DurationTot", "Instruction"]
-    features_range = np.r_[task.columns.get_loc(contiguous_columns[0]) : 
-                           task.columns.get_loc(contiguous_columns[1]) + 1]
+    # define range of all model features
+    # adjacent columns are defined as range between two outmost columns
+    adjacent_feature_columns = ["DurationTot", "Instruction"]
+    features = np.r_[
+            task.columns.get_loc(adjacent_feature_columns[0]) : 
+            task.columns.get_loc(adjacent_feature_columns[1]) + 1
+            ]
     # get model feature names and label name
-    model_features = task.columns[features_range]
+    model_features = task.columns[features]
     model_label = task.columns[-1]
 
     # create two subframes containing only model features and model label
@@ -57,10 +60,16 @@ def run_classification(clf, cv, input_path):
     # get unique namespace of possible labels
     labels_space = np.unique(y)
 
-    # for each different split, test and train classifier
+    # for each different split
     for train_index, test_index in cv.split(X, y):
-        trained_clf, training_time = train_classifier(clf, X, y, train_index)
-        true_labels, predicted_labels, testing_time = test_classifier(clf, X, y, test_index)
+        # train classifier
+        (trained_clf,
+        training_time) = train_classifier(clf, X, y, train_index)
+        # test classifier
+        (true_labels,
+        predicted_labels,
+        testing_time) = test_classifier(clf, X, y, test_index)
+        # store results
         splits_cm.append(confusion_matrix(true_labels, predicted_labels))
         splits_train_time.append(training_time)
         splits_test_time.append(testing_time)

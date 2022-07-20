@@ -69,11 +69,13 @@ def main():
         # of all files inside input directory
         input_paths, output_paths = scan_input_dir(input_path, output_path)
         # for each directory found while traversing input dir
-        for input_dirpath, output_dirpath in zip(input_paths, output_paths):
+        for input_dirpath, output_dirpath in zip(
+                sorted(input_paths),
+                sorted(output_paths)):
             # for each file inside currently considered dir
             for input_filepath, output_filepath in zip(
-                    input_paths[input_dirpath],
-                    output_paths[output_dirpath]):
+                    sorted(input_paths[input_dirpath]),
+                    sorted(output_paths[output_dirpath])):
                 # preprocess file pointed by input filepath
                 df_processed = run_preprocessing(input_filepath)
                 # export preprocessed file to output filepath

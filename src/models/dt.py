@@ -1,7 +1,7 @@
 from src.utils.performance import compute_classifier_performance
 from src.utils.performance import compute_best_task_performance
-from src.utils.classifier import run_classification
-from src.utils.input import scan_input_to_dict
+from src.utils.classification import run_classification
+from src.utils.input import scan_input_dir
 from sklearn import tree
 from sklearn.model_selection import RepeatedStratifiedKFold
 import numpy as np
@@ -13,42 +13,45 @@ def main():
     # set up parser and possible arguments
     parser = argparse.ArgumentParser(
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
+            )
     parser.add_argument(
             "--input",
             type=str,
             metavar="<input_file/dir>",
-            help="input path to file or directory to which classification is performed",
+            help=("input path of file to use for classification or directory "
+                "containing files to use for classification"),
             required=True,
-    )
+            )
     parser.add_argument(
             "--splits",
             type=int,
             metavar="<n_splits>",
             help="number of splits of k-fold cross validation",
             default=10,
-    )
+            )
     parser.add_argument(
             "--repeats",
             type=int,
             metavar="<n_repeats>",
             help="number of runs of k-fold cross validation",
             default=10,
-    )
+            )
     parser.add_argument(
             "--metric",
             type=str,
             metavar="<p_metric>",
-            help="metric used to determine best performing task when running dir classification",
+            help=("performance metric used to determine best performing task "
+                "when running dir classification"),
             default="accuracy",
-    )
+            )
     parser.add_argument(
             "--output",
             type=str,
             metavar="<output_file/dir>",
-            help="output path to file or directory to which results are stored",
+            help=("output path of file with classification results or "
+                "directory containing files with classification results"),
             required=True,
-    )
+            )
 
     # store parsed arguments
     args = parser.parse_args()
@@ -61,78 +64,197 @@ def main():
     output_path_extension = (os.path.splitext(output_path))[1]
 
     # if input argument is not an existing file or directory, raise exception
-    if not(os.path.isfile(input_path)) and not(os.path.isdir(input_path)):
-        raise ValueError(str(input_path) + " is neither an existing file nor directory")
+    if (not os.path.isfile(input_path)
+            and not os.path.isdir(input_path)):
+        raise ValueError(
+                input_path + " does not exist as file or directory"
+                )
 
-    # check if input argument points to file
-    if (os.path.isfile(input_path)):
-        # if output argument is not a valid path to png file
+    # if input argument points to file
+    if os.path.isfile(input_path):
+        # if output argument is not a valid path to png file, raise exception
         if output_path_extension != ".png":
-            raise ValueError(str(output_path) + " is not a valid png file path")
+            raise ValueError(
+                    output_path + " is not a valid path to .png file"
+                    )
 
         # define classifier and cross validator
         dt = tree.DecisionTreeClassifier()
-        cv = RepeatedStratifiedKFold(n_splits=args.splits, n_repeats=args.repeats)
-
+        cv = RepeatedStratifiedKFold(
+                n_splits=args.splits,
+                n_repeats=args.repeats
+                )
         # run classification on file
-        splits_cm_list, splits_train_time_list, splits_test_time_list = run_classification(dt, cv, input_path)
-        task_performance, task_train_time, task_test_time = compute_classifier_performance(splits_cm_list, splits_train_time_list, splits_test_time_list)
-        print("Classification results for {}:\n\tTimes:\n\t\t>>> Training time: {:.5f}s\n\t\t>>> Testing time: {:.5f}s".format(input_path, task_train_time, task_test_time))
-        print("\tPerformance:\n\t\t>>> Accuracy: {:.3f}%\n\t\t>>> Precision: {:.3f}%\n\t\t>>> Recall: {:.3f}%\n\t\t>>> F1 Score: {:.3f}%".format(
-            task_performance[0], task_performance[1], task_performance[2], task_performance[3]))
+        (splits_cm,
+        splits_train_time,
+        splits_test_time) = run_classification(dt, cv, input_path)
+        # compute classifier performance
+        (task_performance,
+        task_train_time,
+        task_test_time) = compute_classifier_performance(
+                splits_cm, splits_train_time, splits_test_time
+                )
+        # print classification results
+        print("Classification results for {}:"
+                "\n\tTimes:>>>"
+                "\n\t\tTraining time: {:.5f}s"
+                "\n\t\t>>> Testing time: {:.5f}s".format(
+                    input_path, task_train_time, task_test_time
+                    )
+                )
+        print("\tPerformance:"
+                "\n\t\t>>> Accuracy: {:.3f}%"
+                "\n\t\t>>> Precision: {:.3f}%"
+                "\n\t\t>>> Recall: {:.3f}%"
+                "\n\t\t>>> F1 Score: {:.3f}%".format(
+                    task_performance[0],
+                    task_performance[1],
+                    task_performance[2],
+                    task_performance[3]
+                    )
+                )
 
     # check if input argument points to directory
-    if (os.path.isdir(input_path)):
+    if os.path.isdir(input_path):
         # if output argument is not a valid path to directory
         if output_path_extension != "":
-            raise ValueError(str(output_path) + " is not a valid directory path")
+            raise ValueError(
+                    output_path + " is not a valid directory path"
+                    )
 
         # define classifier and cross validator
         dt = tree.DecisionTreeClassifier()
-        cv = RepeatedStratifiedKFold(n_splits=args.splits, n_repeats=args.repeats)
+        cv = RepeatedStratifiedKFold(
+                n_splits=args.splits,
+                n_repeats=args.repeats
+                )
+        # get input file path and build corresponding output file path
+        # of all files inside input directory
+        input_paths, output_paths = scan_input_dir(input_path, output_path)
+        # for each directory found while traversing input dir
+        for input_dirpath, output_dirpath in zip(
+                sorted(input_paths),
+                sorted(output_paths)):
 
-        # recursively scan input directory for any csv file 
-        # and store input/output path lists
-        input_paths, output_paths = scan_input_to_dict(input_path, output_path)
-        # for each dir inside input argument, make classification on all files inside of it 
-        for input_dir, output_dir in zip(input_paths, output_paths):
-            # list of files inside dir
-            input_filepaths = sorted(input_paths[input_dir])
-            output_filepaths = sorted(output_paths[output_dir])
+            # list of paths of files inside currently considered dir
+            input_filepaths = sorted(input_paths[input_dirpath])
+            output_filepaths = sorted(output_paths[output_dirpath])
 
-            # if there's only one file inside of dir, run single file classification
+            # if there's only one file inside the current dir,
+            # run single file classification
             if len(input_filepaths) == 1:
                 # run classification on file
-                task_cm_list, task_train_time_list, task_test_time_list = run_classification(dt, cv, input_path)
-                task_performance, task_train_time, task_test_time = compute_classifier_performance(splits_cm_list, splits_train_time_list, splits_test_time_list)
-                print("Classification results for {}:\n\tTimes:\n\t\t>>> Training time: {:.5f}s\n\t\t>>> Testing time: {:.5f}s".format(input_path, task_train_time, task_test_time))
-                print("\tPerformance:\n\t\t>>> Accuracy: {:.3f}%\n\t\t>>> Precision: {:.3f}%\n\t\t>>> Recall: {:.3f}%\n\t\t>>> F1 Score: {:.3f}%".format(
-                    task_performance[0], task_performance[1], task_performance[2], task_performance[3]))
+                (splits_cm,
+                splits_train_time,
+                splits_test_time) = run_classification(dt, cv, input_path)
+                # compute classifier performance
+                (task_performance,
+                task_train_time,
+                task_test_time) = compute_classifier_performance(
+                        splits_cm, splits_train_time, splits_test_time
+                        )
+                # print classification results
+                print("Classification results for {}:"
+                        "\n\tTimes:>>>"
+                        "\n\t\tTraining time: {:.5f}s"
+                        "\n\t\t>>> Testing time: {:.5f}s".format(
+                            input_path, task_train_time, task_test_time
+                            )
+                        )
+                print("\tPerformance:"
+                        "\n\t\t>>> Accuracy: {:.3f}%"
+                        "\n\t\t>>> Precision: {:.3f}%"
+                        "\n\t\t>>> Recall: {:.3f}%"
+                        "\n\t\t>>> F1 Score: {:.3f}%".format(
+                            task_performance[0],
+                            task_performance[1],
+                            task_performance[2],
+                            task_performance[3]
+                            )
+                        )
 
+            # if there's at least two files inside current directory,
+            # run dir classification
+            # this means that also the best classified file will be computed
+            # across all files inside dir
             else:
                 tasks_performance = []
                 tasks_train_time = []
                 tasks_test_time = []
-                # run classification on each file inside input dir
-                for input_filepath, output_filepath in zip(input_filepaths, output_filepaths):
-                    splits_cm_list, splits_train_time_list, splits_test_time_list = run_classification(dt, cv, input_filepath)
-                    task_performance, task_train_time, task_test_time = compute_classifier_performance(splits_cm_list, splits_train_time_list, splits_test_time_list)
+
+                # for each file inside currently considered dir
+                for input_filepath, output_filepath in zip(
+                        input_filepaths,
+                        output_filepaths
+                        ):
+                    # run classification on file
+                    (splits_cm,
+                    splits_train_time,
+                    splits_test_time) = run_classification(
+                            dt, cv, input_filepath
+                            )
+                    # compute classifier results
+                    (task_performance,
+                    task_train_time,
+                    task_test_time) = compute_classifier_performance(
+                            splits_cm, splits_train_time, splits_test_time
+                            )
+                    # store classification results
                     tasks_performance.append(task_performance)
                     tasks_train_time.append(task_train_time)
                     tasks_test_time.append(task_test_time)
 
-                best_task_performance, best_task_train_time, best_task_test_time, best_task_index = compute_best_task_performance(tasks_performance, tasks_train_time, tasks_test_time, args.metric)
+                # compute best task
+                (best_task_performance,
+                best_task_train_time,
+                best_task_test_time,
+                best_task_index) = compute_best_task_performance(
+                    tasks_performance,
+                    tasks_train_time,
+                    tasks_test_time,
+                    args.metric
+                    )
 
-                total_training_time = sum(time for time in tasks_train_time)
-                total_testing_time = sum(time for time in tasks_test_time)
-                avg_training_time = np.mean([ time for time in tasks_train_time])
-                avg_testing_time = np.mean([ time for time in tasks_test_time])
-                
-                print("Classification for {} took:\n\tTotal times (all tasks)\n\t\t>>> {:.5f}s for training\n\t\t>>> {:.5f}s for testing".format(input_dir, total_training_time, total_testing_time))
-                print("\tAverage times (per task)\n\t\t>>> {:.5f}s for training\n\t\t>>> {:.5f}s for testing".format(avg_training_time, avg_testing_time))
-                print("Best performing task for {} was T{}:\n\tTimes:\n\t\t>>> Training time: {:.5f}s\n\t\t>>> Testing time: {:.5f}s".format(input_dir, best_task_index, best_task_train_time, best_task_test_time))
-                print("\tPerformance:\n\t\t>>> Accuracy: {:.3f}%\n\t\t>>> Precision: {:.3f}%\n\t\t>>> Recall: {:.3f}%\n\t\t>>> F1 Score: {:.3f}%".format(
-                    best_task_performance[0], best_task_performance[1], best_task_performance[2], best_task_performance[3]))
+                # compute classification total time and per avg time per task
+                total_train_time = sum(time for time in tasks_train_time)
+                total_test_time = sum(time for time in tasks_test_time)
+                avg_train_time = np.mean([time for time in tasks_train_time])
+                avg_test_time = np.mean([time for time in tasks_test_time])
+
+                # print classification results 
+                print("Classification for {} took:"
+                        "\n\tTotal times (all tasks)"
+                        "\n\t\t>>> {:.5f}s for training"
+                        "\n\t\t>>> {:.5f}s for testing".format(
+                            input_dir, total_training_time, total_testing_time
+                            )
+                        )
+                print("\tAverage times (per task)"
+                        "\n\t\t>>> {:.5f}s for training"
+                        "\n\t\t>>> {:.5f}s for testing".format(
+                            avg_training_time, avg_testing_time
+                            )
+                        )
+                print("Best performing task for {} was T{}"
+                        ":\n\tTimes:\n\t\t>>> Training time: {:.5f}s"
+                        "\n\t\t>>> Testing time: {:.5f}s".format(
+                            input_dir,
+                            best_task_index,
+                            best_task_train_time,
+                            best_task_test_time
+                            )
+                        )
+                print("\tPerformance:"
+                        "\n\t\t>>> Accuracy: {:.3f}%"
+                        "\n\t\t>>> Precision: {:.3f}%"
+                        "\n\t\t>>> Recall: {:.3f}%"
+                        "\n\t\t>>> F1 Score: {:.3f}%".format(
+                            best_task_performance[0],
+                            best_task_performance[1],
+                            best_task_performance[2],
+                            best_task_performance[3]
+                            )
+                        )
 
 
 if __name__ == '__main__':
