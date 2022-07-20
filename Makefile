@@ -1,16 +1,17 @@
 # Makefile
 
 ENV_NAME = alzheimer-thesis
+ENV_CONFIG = environment.yml
 
 raw ?= data/raw
 processed ?= $(subst raw,processed,$(raw))
 reports ?= reports
 
 create_environment:
-	conda env create --name $(ENV_NAME) --file environment.yml
+	conda env create --name $(ENV_NAME) --file $(ENV_CONFIG)
 
 update_environment:
-	conda env update --name $(ENV_NAME) --file environment.yml
+	conda env update --name $(ENV_NAME) --file $(ENV_CONFIG)
 
 dataset:
 	python3 src/data/make_dataset.py --input $(raw) --output $(processed)
