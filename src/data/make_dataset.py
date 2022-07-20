@@ -1,7 +1,7 @@
 from src.utils.preprocessing import map_data
 from src.utils.preprocessing import clean_data
 from src.utils.preprocessing import run_preprocessing
-from src.utils.input import input_scan_list
+from src.utils.input import scan_input_to_list
 from pathlib import Path
 import argparse
 import os
@@ -54,7 +54,7 @@ def main():
             raise ValueError(str(output_path) + ' is not a valid directory path')
 
         # look for any csv file inside input path and store corresponding paths
-        input_paths, output_paths = input_scan_list(input_path, output_path)
+        input_paths, output_paths = scan_input_to_list(input_path, output_path)
         # preprocess each file inside input dir
         for input_path, output_path in zip(input_paths, output_paths):
             df_processed = run_preprocessing(input_path)
