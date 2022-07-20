@@ -1,9 +1,11 @@
+from src.utils.preprocessing import normalize_data
+from src.utils.classification import run_classification
 from src.utils.performance import compute_classifier_performance
 from src.utils.performance import compute_best_task_performance
-from src.utils.classification import run_classification
 from src.utils.input import scan_input_dir
 from sklearn import svm
 from sklearn.model_selection import RepeatedStratifiedKFold
+import pandas as pd
 import numpy as np
 import argparse
 import os
@@ -84,11 +86,15 @@ def main():
                 n_splits=args.splits,
                 n_repeats=args.repeats
                 )
+        # read input file as dataframe
+        df = pd.read_csv(input_path, sep=";")
+        df_normalized = normalize_data(df)
+
         # run classification on file
         (splits_cm,
          splits_train_time,
          splits_test_time) = run_classification(
-                svc, cv, input_path
+                svc, cv, df_normalized
                 )
         # compute classifier performance
         (task_performance,
@@ -150,11 +156,14 @@ def main():
             # if there's only one file inside the current dir,
             # run single file classification
             if len(input_filepaths) == 1:
+                # read input file as dataframe
+                df = pd.read_csv(input_filepaths[0], sep=";")
+                df_normalized = normalize_data(df)
                 # run classification on file
                 (splits_cm,
                  splits_train_time,
                  splits_test_time) = run_classification(
-                        svc, cv, input_path
+                        svc, cv, df_normalized
                         )
                 # compute classifier performance
                 (task_performance,
@@ -198,11 +207,14 @@ def main():
                         input_filepaths,
                         output_filepaths
                         ):
+                    # read input file as dataframe
+                    df = pd.read_csv(input_filepath, sep=";")
+                    df_normalized = normalize_data(df)
                     # run classification on file
                     (splits_cm,
                      splits_train_time,
                      splits_test_time) = run_classification(
-                            svc, cv, input_filepath
+                            svc, cv, df_normalized
                             )
                     # compute classifier results
                     (task_performance,

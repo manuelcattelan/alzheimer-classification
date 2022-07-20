@@ -4,6 +4,7 @@ from src.utils.classification import run_classification
 from src.utils.input import scan_input_dir
 from sklearn import tree
 from sklearn.model_selection import RepeatedStratifiedKFold
+import pandas as pd
 import numpy as np
 import argparse
 import os
@@ -84,11 +85,13 @@ def main():
                 n_splits=args.splits,
                 n_repeats=args.repeats
                 )
+        # read input file as dataframe
+        df = pd.read_csv(input_path, sep=";")
         # run classification on file
         (splits_cm,
          splits_train_time,
          splits_test_time) = run_classification(
-                dt, cv, input_path
+                dt, cv, df
                 )
         # compute classifier performance
         (task_performance,
@@ -150,11 +153,13 @@ def main():
             # if there's only one file inside the current dir,
             # run single file classification
             if len(input_filepaths) == 1:
+                # read input file as dataframe
+                df = pd.read_csv(input_filepath[0], sep=";")
                 # run classification on file
                 (splits_cm,
                  splits_train_time,
                  splits_test_time) = run_classification(
-                        dt, cv, input_path
+                        dt, cv, df
                         )
                 # compute classifier performance
                 (task_performance,
@@ -198,11 +203,13 @@ def main():
                         input_filepaths,
                         output_filepaths
                         ):
+                    # read input file as dataframe
+                    df = pd.read_csv(input_filepath, sep=";")
                     # run classification on file
                     (splits_cm,
                      splits_train_time,
                      splits_test_time) = run_classification(
-                            dt, cv, input_filepath
+                            dt, cv, df
                             )
                     # compute classifier results
                     (task_performance,

@@ -34,29 +34,26 @@ def test_classifier(clf, X, y, test_index):
     return y_test, y_pred, test_time
 
 
-def run_classification(clf, cv, input_path):
+def run_classification(clf, cv, df):
     # lists where each split result is stored
     splits_cm = []
     splits_train_time = []
     splits_test_time = []
 
-    # read input file as dataframe
-    task = pd.read_csv(input_path, sep=";")
-
     # define range of all model features
     # adjacent columns are defined as range between two outmost columns
     adjacent_feature_columns = ["DurationTot", "Instruction"]
     features = np.r_[
-            task.columns.get_loc(adjacent_feature_columns[0]):
-            task.columns.get_loc(adjacent_feature_columns[1]) + 1
+            df.columns.get_loc(adjacent_feature_columns[0]):
+            df.columns.get_loc(adjacent_feature_columns[1]) + 1
             ]
     # get model feature names and label name
-    model_features = task.columns[features]
-    model_label = task.columns[-1]
+    model_features = df.columns[features]
+    model_label = df.columns[-1]
 
     # create two subframes containing only model features and model label
-    X = task[model_features]
-    y = task[model_label]
+    X = df[model_features]
+    y = df[model_label]
     # get unique namespace of possible labels
     labels_space = np.unique(y)
 
