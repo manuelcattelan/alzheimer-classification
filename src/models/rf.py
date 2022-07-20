@@ -261,7 +261,7 @@ def main():
                         "\n\t\t>>> Training time: {:.5f}s"
                         "\n\t\t>>> Testing time: {:.5f}s".format(
                             input_dirpath,
-                            best_task_index,
+                            best_task_index + 1,
                             best_task_train_time,
                             best_task_test_time
                             )
