@@ -77,7 +77,7 @@ def normalize_data(df_to_normalize):
             df_to_normalize[features_to_normalize_name]
             )
 
-    return df_normalized, scaler
+    return df_normalized
 
 
 def export_data(df_to_export, output_path):
