@@ -88,11 +88,7 @@ def export_data(df_to_export, output_path):
     df_to_export.to_csv(output_path, sep=";", index=False)
 
 
-def run_preprocessing(input_path):
-    # read input path as dataframe
-    df_raw = pd.read_csv(input_path, sep=";", converters={"Sex": str.strip,
-                                                          "Work": str.strip,
-                                                          "Label": str.strip})
+def run_preprocessing(df_raw):
     # run standard preprocessing
     df_mapped = map_data(df_raw)
     df_cleaned = clean_data(df_mapped)

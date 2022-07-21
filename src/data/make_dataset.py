@@ -1,6 +1,7 @@
 from src.utils.preprocessing import run_preprocessing
 from src.utils.preprocessing import export_data
 from src.utils.scan_input import scan_input_dir
+import pandas as pd
 import argparse
 import os
 
@@ -52,9 +53,16 @@ def main():
                     output_path + " is not a valid path to .csv file"
                     )
 
+        # read raw data from input path
+        df_to_process = pd.read_csv(
+                input_path, sep=";", converters={"Sex": str.strip,
+                                                 "Work": str.strip,
+                                                 "Label": str.strip
+                                                 }
+                )
         # preprocess file pointed by input path
         df_processed = run_preprocessing(
-                input_path
+                df_to_process
                 )
         # export processed file to output path
         export_data(
@@ -83,9 +91,16 @@ def main():
             for input_filepath, output_filepath in zip(
                     sorted(input_paths[input_dirpath]),
                     sorted(output_paths[output_dirpath])):
+                # read raw data from input path
+                df_to_process = pd.read_csv(
+                        input_filepath, sep=";", converters={"Sex": str.strip,
+                                                             "Work": str.strip,
+                                                             "Label": str.strip
+                                                             }
+                        )
                 # preprocess file pointed by input filepath
                 df_processed = run_preprocessing(
-                        input_filepath
+                        df_to_process
                         )
                 # export preprocessed file to output filepath
                 export_data(
