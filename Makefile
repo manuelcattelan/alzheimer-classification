@@ -3,9 +3,11 @@
 ENV_NAME = alzheimer-thesis
 ENV_CONFIG = environment.yml
 
-raw ?= data/raw
-processed ?= $(subst raw,processed,$(raw))
-reports ?= reports
+DEFAULT_RAW_DATA = data/raw
+DEFAULT_PROCESSED_DATA = data/processed
+
+raw ?= $(DEFAULT_RAW_DATA)
+processed ?= $(DEFAULT_PROCESSED_DATA)
 
 create_environment:
 	conda env create --name $(ENV_NAME) --file $(ENV_CONFIG)
