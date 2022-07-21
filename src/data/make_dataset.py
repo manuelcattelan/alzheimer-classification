@@ -1,6 +1,6 @@
 from src.utils.preprocessing import run_preprocessing
 from src.utils.preprocessing import export_data
-from src.utils.input import scan_input_dir
+from src.utils.scan_input import scan_input_dir
 import argparse
 import os
 
