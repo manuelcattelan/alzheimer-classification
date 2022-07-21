@@ -7,6 +7,7 @@ from src.utils.parameters_tuning import tune_classifier
 from src.utils.scan_input import scan_input_dir
 from sklearn import tree
 from sklearn.model_selection import RepeatedStratifiedKFold
+import json
 import pandas as pd
 import numpy as np
 import argparse
@@ -42,13 +43,13 @@ def main():
             )
     parser.add_argument(
             "--tune",
-            choices=['randomized', 'grid'],
-            help="whether to tune classifier hyperparameters or not",
+            choices=["randomized", "grid"],
+            help="specify algorithm used for tuning hyperparameters",
             )
     parser.add_argument(
             "--metric",
             type=str,
-            choices=['accuracy', 'precision', 'recall', 'f1'],
+            choices=["accuracy", "precision", "recall", "f1"],
             help=("performance metric used to determine best performing task "
                   "when running dir classification"),
             default="accuracy",
@@ -95,22 +96,16 @@ def main():
                 )
         # read input file as dataframe
         df = pd.read_csv(input_path, sep=";")
+        # if tune argument was defined
         if args.tune:
-            if args.tune == 'randomized':
-                dt, tuning_time = tune_classifier(
-                        dt, cv, param_distribution, df, 'randomized'
-                        )
-                print("Randomized hyperparameter tuning took {:.3f}s"
-                        .format(tuning_time)
-                        )
-            elif args.tune == 'grid':
-                dt, tuning_time = tune_classifier(
-                        dt, cv, param_grid, df, 'grid'
-                        )
-                print("Grid hyperparameter tuning took {:.3f}s"
-                        .format(tuning_time)
-                        )
-
+            # based on tune argument option, select corresponding parameters
+            params = param_grid if args.tune == "grid" else param_distribution
+            # run hyperparameter tuning
+            (dt,
+             tuning_best_params,
+             tuning_time) = tune_classifier(
+                    dt, cv, params, df, args.tune
+                    )
         # run classification on file
         (splits_cm,
          splits_train_time,
@@ -125,19 +120,31 @@ def main():
                 )
         # print classification results
         print(
-                "Classification results for {}:"
-                "\n\tClassification time:"
-                "\n\t\t>>> Training: {:.5f}s"
-                "\n\t\t>>> Testing: {:.5f}s".format(
-                    input_path, task_train_time, task_test_time
+                "Classification results for {}:".format(
+                    input_path
+                    )
+                )
+        if args.tune:
+            # print time taken for hyperparameter tuning
+            print(
+                    "\tHyperparameters tuning:"
+                    "\n\t\t>>> Time taken: {:.3f}s".format(
+                        tuning_time
+                        )
+                    )
+        print(
+                "\tClassification time:"
+                "\n\t\t>>> Training: {:.3f}s"
+                "\n\t\t>>> Testing: {:.3f}s".format(
+                    task_train_time, task_test_time
                     )
                 )
         print(
                 "\tClassification performance:"
-                "\n\t\t>>> Accuracy: {:.3f}%"
-                "\n\t\t>>> Precision: {:.3f}%"
-                "\n\t\t>>> Recall: {:.3f}%"
-                "\n\t\t>>> F1 Score: {:.3f}%".format(
+                "\n\t\t>>> Accuracy: {:.1f}%"
+                "\n\t\t>>> Precision: {:.1f}%"
+                "\n\t\t>>> Recall: {:.1f}%"
+                "\n\t\t>>> F1 Score: {:.1f}%".format(
                     task_performance[0],
                     task_performance[1],
                     task_performance[2],
@@ -179,6 +186,15 @@ def main():
             if len(input_filepaths) == 1:
                 # read input file as dataframe
                 df = pd.read_csv(input_filepaths[0], sep=";")
+                if args.tune:
+                    # based on tune argument option, select corresponding parameters
+                    params = param_grid if args.tune == "grid" else param_distribution
+                    # run hyperparameter tuning
+                    (dt,
+                     tuning_best_params,
+                     tuning_time) = tune_classifier(
+                            dt, cv, params, df, args.tune
+                            )
                 # run classification on file
                 (splits_cm,
                  splits_train_time,
@@ -193,19 +209,31 @@ def main():
                         )
                 # print classification results
                 print(
-                        "Classification results for {}:"
-                        "\n\tClassification time:"
-                        "\n\t\t>>> Training: {:.5f}s"
-                        "\n\t\t>>> Testing: {:.5f}s".format(
-                            input_path, task_train_time, task_test_time
+                        "Classification results for {}:".format(
+                            input_path
+                            )
+                        )
+                if args.tune:
+                    # print time taken for hyperparameter tuning
+                    print(
+                            "\tHyperparameters tuning:"
+                            "\n\t\t>>> Time taken: {:.3f}s".format(
+                                tuning_time
+                                )
+                            )
+                print(
+                        "\tClassification time:"
+                        "\n\t\t>>> Training: {:.3f}s"
+                        "\n\t\t>>> Testing: {:.3f}s".format(
+                            task_train_time, task_test_time
                             )
                         )
                 print(
                         "\tClassification performance:"
-                        "\n\t\t>>> Accuracy: {:.3f}%"
-                        "\n\t\t>>> Precision: {:.3f}%"
-                        "\n\t\t>>> Recall: {:.3f}%"
-                        "\n\t\t>>> F1 Score: {:.3f}%".format(
+                        "\n\t\t>>> Accuracy: {:.1f}%"
+                        "\n\t\t>>> Precision: {:.1f}%"
+                        "\n\t\t>>> Recall: {:.1f}%"
+                        "\n\t\t>>> F1 Score: {:.1f}%".format(
                             task_performance[0],
                             task_performance[1],
                             task_performance[2],
@@ -221,6 +249,8 @@ def main():
                 tasks_performance = []
                 tasks_train_time = []
                 tasks_test_time = []
+                tasks_best_params = []
+                tasks_tuning_times = []
 
                 # for each file inside currently considered dir
                 for input_filepath, output_filepath in zip(
@@ -229,6 +259,18 @@ def main():
                         ):
                     # read input file as dataframe
                     df = pd.read_csv(input_filepath, sep=";")
+                    if args.tune:
+                        # based on tune argument option, 
+                        # select corresponding parameters
+                        params = (param_grid if args.tune == "grid" else param_distribution)
+                        # run hyperparameter tuning
+                        (dt,
+                         tuning_best_params,
+                         tuning_time) = tune_classifier(
+                            dt, cv, params, df, args.tune
+                            )
+                        tasks_best_params.append(tuning_best_params)
+                        tasks_tuning_times.append(tuning_time)
                     # run classification on file
                     (splits_cm,
                      splits_train_time,
@@ -262,28 +304,44 @@ def main():
                 total_test_time = sum(time for time in tasks_test_time)
                 avg_train_time = np.mean([time for time in tasks_train_time])
                 avg_test_time = np.mean([time for time in tasks_test_time])
+                # compute classification information regarding tuning
+                if args.tune:
+                    best_task_params = tasks_best_params[best_task_index]
+                    total_tuning_time = sum(time for time in tasks_tuning_times)
 
                 # print classification results
                 print(
-                        "Classification for {} took:"
-                        "\n\tTotal classification time (all tasks):"
-                        "\n\t\t>>> Training: {:.5f}s"
-                        "\n\t\t>>> Testing: {:.5f}s".format(
-                            input_dirpath, total_train_time, total_test_time
+                        "Classification results for {}:".format(
+                                input_dirpath
+                                )
+                        )
+                if args.tune:
+                    # print time taken for hyperparameter tuning
+                    print(
+                            "\tHyperparameters tuning:"
+                            "\n\t\t>>> Time taken: {:.3f}s".format(
+                                total_tuning_time
+                                )
+                            )
+                print(
+                        "\tTotal classification time (all tasks):"
+                        "\n\t\t>>> Training: {:.3f}s"
+                        "\n\t\t>>> Testing: {:.3f}s".format(
+                            total_train_time, total_test_time
                             )
                         )
                 print(
                         "\tAverage classification time (per task):"
-                        "\n\t\t>>> Training: {:.5f}s"
-                        "\n\t\t>>> Testing: {:.5f}s".format(
+                        "\n\t\t>>> Training: {:.3f}s"
+                        "\n\t\t>>> Testing: {:.3f}s".format(
                             avg_train_time, avg_test_time
                             )
                         )
                 print(
                         "\tBest performing task for {} was T{}:"
                         "\n\t\tClassification time:"
-                        "\n\t\t\t>>> Training: {:.5f}s"
-                        "\n\t\t\t>>> Testing: {:.5f}s".format(
+                        "\n\t\t\t>>> Training: {:.3f}s"
+                        "\n\t\t\t>>> Testing: {:.3f}s".format(
                             input_dirpath,
                             best_task_index + 1,
                             best_task_train_time,
@@ -292,10 +350,10 @@ def main():
                         )
                 print(
                         "\t\tClassification performance:"
-                        "\n\t\t\t>>> Accuracy: {:.3f}%"
-                        "\n\t\t\t>>> Precision: {:.3f}%"
-                        "\n\t\t\t>>> Recall: {:.3f}%"
-                        "\n\t\t\t>>> F1 Score: {:.3f}%".format(
+                        "\n\t\t\t>>> Accuracy: {:.1f}%"
+                        "\n\t\t\t>>> Precision: {:.1f}%"
+                        "\n\t\t\t>>> Recall: {:.1f}%"
+                        "\n\t\t\t>>> F1 score: {:.1f}%".format(
                             best_task_performance[0],
                             best_task_performance[1],
                             best_task_performance[2],
