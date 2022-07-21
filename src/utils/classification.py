@@ -39,20 +39,10 @@ def run_classification(clf, cv, df):
     splits_train_time = []
     splits_test_time = []
 
-    # define range of all model features
-    # adjacent columns are defined as range between two outmost columns
-    adjacent_feature_columns = ["DurationTot", "Instruction"]
-    features = np.r_[
-            df.columns.get_loc(adjacent_feature_columns[0]):
-            df.columns.get_loc(adjacent_feature_columns[1]) + 1
-            ]
-    # get model feature names and label name
-    model_features = df.columns[features]
-    model_label = df.columns[-1]
-
     # create two subframes containing only model features and model label
-    X = df[model_features]
-    y = df[model_label]
+    X = df.iloc[:, 1:-1]
+    y = df.iloc[:, -1]
+
     # get unique namespace of possible labels
     labels_space = np.unique(y)
 

@@ -4,52 +4,45 @@ import numpy as np
 import time
 
 param_distribution = {
-        'criterion': ['gini', 'entropy'],
-        'max_depth': list(range(1, 10, 1)),
-        'min_samples_split': list(range(2, 20, 1)),
-        'min_samples_leaf': list(range(1, 20, 1)),
-        'min_impurity_decrease': list(np.arange(0.0, 1.0, 0.1))
+        "criterion": ["gini", "entropy"],
+        "max_depth": list(np.arange(1, 15, 1)),
+        "min_samples_split": list(np.arange(2, 10, 1)),
+        "min_samples_leaf": list(np.arange(1, 10, 1)),
+        "min_impurity_decrease": list(np.arange(0.0, 1.0, 0.1))
         }
 
 
 param_grid = {
-        'criterion': ['gini', 'entropy'],
-        'max_depth': [None, 1, 3, 5, 10],
-        'min_samples_split': [2, 3, 5, 10, 15, 20],
-        'min_samples_leaf': [1, 3, 5, 10, 15, 20],
-        'min_impurity_decrease': [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        "criterion": ["gini", "entropy"],
+        "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "min_samples_split": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "min_samples_leaf": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "min_impurity_decrease": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
         }
 
 
 def tune_classifier(clf, cv, parameters, df, mode):
-    adjacent_feature_columns = ["DurationTot", "Instruction"]
-    features = np.r_[
-            df.columns.get_loc(adjacent_feature_columns[0]):
-            df.columns.get_loc(adjacent_feature_columns[1]) + 1
-            ]
-    # get model feature names and label name
-    model_features = df.columns[features]
-    model_label = df.columns[-1]
-
     # create two subframes containing only model features and model label
-    X = df[model_features]
-    y = df[model_label]
+    X = df.iloc[:, 1:-1]
+    y = df.iloc[:, -1]
 
+    # based on mode argument, run randomized search or grid search
     match mode:
-        case 'randomized':
-            s = RandomizedSearchCV(
+        case "randomized":
+            tuner = RandomizedSearchCV(
                     estimator=clf,
                     param_distributions=parameters,
-                    cv=cv,            
+                    cv=cv,
                     )
-        case 'grid':
-            s = GridSearchCV(
+        case "grid":
+            tuner = GridSearchCV(
                     estimator=clf,
                     param_grid=parameters,
                     cv=cv,
                     )
-
+    # time parameter tuning
     start = time.time()
-    s.fit(X, y)
+    # start parameter tuning
+    tuner.fit(X, y)
 
-    return s.best_estimator_, time.time() - start
+    return tuner.best_estimator_, time.time() - start
