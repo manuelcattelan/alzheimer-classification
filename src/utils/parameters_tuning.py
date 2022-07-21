@@ -8,7 +8,7 @@ param_distribution = {
         "max_depth": list(np.arange(1, 15, 1)),
         "min_samples_split": list(np.arange(2, 10, 1)),
         "min_samples_leaf": list(np.arange(1, 10, 1)),
-        "min_impurity_decrease": list(np.arange(0.0, 1.0, 0.1))
+        "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))
         }
 
 
@@ -17,7 +17,7 @@ param_grid = {
         "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         "min_samples_split": [2, 3, 4, 5, 6, 7, 8, 9, 10],
         "min_samples_leaf": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        "min_impurity_decrease": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        "min_impurity_decrease": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
         }
 
 
@@ -45,4 +45,4 @@ def tune_classifier(clf, cv, parameters, df, mode):
     # start parameter tuning
     tuner.fit(X, y)
 
-    return tuner.best_estimator_, time.time() - start
+    return tuner.best_estimator_, tuner.best_params_, time.time() - start
