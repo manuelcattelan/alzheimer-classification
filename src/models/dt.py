@@ -1,7 +1,10 @@
 from src.utils.performance import compute_classifier_performance
 from src.utils.performance import compute_best_task_performance
 from src.utils.classification import run_classification
-from src.utils.input import scan_input_dir
+from src.utils.parameters_tuning import param_distribution
+from src.utils.parameters_tuning import param_grid
+from src.utils.parameters_tuning import tune_classifier
+from src.utils.scan_input import scan_input_dir
 from sklearn import tree
 from sklearn.model_selection import RepeatedStratifiedKFold
 import pandas as pd
@@ -38,9 +41,14 @@ def main():
             default=10,
             )
     parser.add_argument(
+            "--tune",
+            choices=['randomized', 'grid'],
+            help="whether to tune classifier hyperparameters or not",
+            )
+    parser.add_argument(
             "--metric",
             type=str,
-            metavar="<p_metric>",
+            choices=['accuracy', 'precision', 'recall', 'f1'],
             help=("performance metric used to determine best performing task "
                   "when running dir classification"),
             default="accuracy",
@@ -87,6 +95,22 @@ def main():
                 )
         # read input file as dataframe
         df = pd.read_csv(input_path, sep=";")
+        if args.tune:
+            if args.tune == 'randomized':
+                dt, tuning_time = tune_classifier(
+                        dt, cv, param_distribution, df, 'randomized'
+                        )
+                print("Randomized hyperparameter tuning took {:.3f}s"
+                        .format(tuning_time)
+                        )
+            elif args.tune == 'grid':
+                dt, tuning_time = tune_classifier(
+                        dt, cv, param_grid, df, 'grid'
+                        )
+                print("Grid hyperparameter tuning took {:.3f}s"
+                        .format(tuning_time)
+                        )
+
         # run classification on file
         (splits_cm,
          splits_train_time,
