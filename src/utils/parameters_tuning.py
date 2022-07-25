@@ -3,21 +3,13 @@ from sklearn.model_selection import GridSearchCV
 import numpy as np
 import time
 
-param_distribution = {
-        "criterion": ["gini", "entropy"],
-        "max_depth": list(np.arange(1, 15, 1)),
-        "min_samples_split": list(np.arange(2, 10, 1)),
-        "min_samples_leaf": list(np.arange(1, 10, 1)),
-        "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))
-        }
 
-
-param_grid = {
+dt_params = {
         "criterion": ["gini", "entropy"],
         "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        "min_samples_split": [2, 3, 4, 5, 6, 7, 8, 9, 10],
-        "min_samples_leaf": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        "min_impurity_decrease": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+        "min_samples_split": list(np.arange(2, 20, 1)),
+        "min_samples_leaf": list(np.arange(1, 20, 1)),
+        "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))
         }
 
 
