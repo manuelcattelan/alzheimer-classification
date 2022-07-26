@@ -1,67 +1,58 @@
 from src.utils.preprocessing import file_preprocessing
 from src.utils.preprocessing import dir_preprocessing
 import argparse
+import errno
 import os
 
 
 def main():
-    # set up parser and possible arguments
+    # Set un parser to enable possible arguments from command line
     parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawTextHelpFormatter,
-            )
-    parser.add_argument(
-            "--input",
-            type=str,
-            metavar="<input_file/dir>",
-            help=("input path of file in .csv format to preprocess or "
-                  "directory containing files in .csv format to preprocess"),
-            required=True,
-            )
-    parser.add_argument(
-            "--output",
-            type=str,
-            metavar="<output_file/dir>",
-            help=("output path of preprocessed file in .csv format or "
-                  "directory containing preprocessed files in .csv format"),
-            required=True,
-            )
-
-    # store parsed arguments
+            formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--input",
+                        help=("path to file or directory of files where "
+                              "data to preprocess is stored"),
+                        required=True)
+    parser.add_argument("--output",
+                        help=("path to file or directory of files where "
+                              "preprocessed data will be stored"),
+                        required=True)
     args = parser.parse_args()
-    input_path = args.input
-    output_path = args.output
 
-    # if input argument is not an existing file or directory, raise exception
-    if (not os.path.isfile(input_path)
-            and not os.path.isdir(input_path)):
-        raise ValueError(
-                input_path + " does not exist as file or directory"
-                )
+    # Check if provided input argument is valid, meaning:
+    # Input argument is an existing file, or
+    # Input argument is an existing directory
+    if not os.path.exists(args.input):
+        raise FileNotFoundError(errno.ENOENT,
+                                os.strerror(errno.ENOENT),
+                                args.input)
 
-    # get output extension to check output path validity later
-    # if input is file -> output must be file with csv extension
-    # if input is dir  -> output must be dir without any extension
-    output_path_extension = os.path.splitext(output_path)[1]
+    # Get extension from output argument for later validity checks:
+    # If input is a file -> output must end with .csv extension
+    # If input is a directory -> output must end with no extension
+    output_arg_extension = os.path.splitext(args.output)[1]
 
-    # if input argument points to file
-    if os.path.isfile(input_path):
-        # if output argument is not a valid path to csv file, raise exception
-        if output_path_extension != ".csv":
-            raise ValueError(
-                    output_path + " is not a valid path to .csv file"
-                    )
-        # run single file preprocessing
-        file_preprocessing(input_path, output_path)
+    # Check if provided input argument contains path to file
+    if os.path.isfile(args.input):
+        if output_arg_extension != ".csv":
+            raise ValueError("Not a valid path to csv file: '"
+                             + args.output
+                             + "'")
+        # If everything is OK:
+        # run preprocessing on specified input file
+        # store preprocessed data on specified output file
+        file_preprocessing(args.input, args.output)
 
-    # if input argument points to directory
-    if os.path.isdir(input_path):
-        # if output argument is not a valid path to directory, raise exception
-        if output_path_extension != "":
-            raise ValueError(
-                    output_path + " is not a valid directory path"
-                    )
-        # run dir preprocessing
-        dir_preprocessing(input_path, output_path)
+    # Check if provided input argument contains path to directory
+    if os.path.isdir(args.input):
+        if output_arg_extension != "":
+            raise ValueError("Not a valid path to directory: '"
+                             + args.output
+                             + "'")
+        # If everything is OK:
+        # run preprocessing on specified input directory
+        # store preprocessed data on specified output directory
+        dir_preprocessing(args.input, args.output)
 
 
 if __name__ == "__main__":
