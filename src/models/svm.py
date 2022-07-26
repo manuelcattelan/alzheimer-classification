@@ -9,7 +9,7 @@ import os
 
 
 def main():
-    # Set un parser to enable possible arguments from command line
+    # Set up parser to enable possible arguments from command line
     parser = argparse.ArgumentParser(
             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input",
