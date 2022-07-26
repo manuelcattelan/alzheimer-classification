@@ -1,124 +1,95 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
-from src.utils.parameters_tuning import dt_params
+from src.utils.parameters_tuning import dt_parameters
 from src.utils.classification import file_classification
 from src.utils.classification import dir_classification
 import argparse
+import errno
 import os
 
 
 def main():
-    # set up parser and possible arguments
+    # Set un parser to enable possible arguments from command line
     parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            )
-    parser.add_argument(
-            "--input",
-            type=str,
-            metavar="<input_file/dir>",
-            help=("input path of file to use for classification or directory "
-                  "containing files to use for classification"),
-            required=True,
-            )
-    parser.add_argument(
-            "--splits",
-            type=int,
-            metavar="<n_splits>",
-            help="number of splits of k-fold cross validation",
-            default=10,
-            )
-    parser.add_argument(
-            "--repeats",
-            type=int,
-            metavar="<n_repeats>",
-            help="number of runs of k-fold cross validation",
-            default=10,
-            )
-    parser.add_argument(
-            "--tune",
-            choices=["randomized", "grid"],
-            help="specify algorithm used for tuning hyperparameters",
-            )
-    parser.add_argument(
-            "--metric",
-            type=str,
-            choices=["accuracy", "precision", "recall", "f1"],
-            help=("performance metric used to determine best performing task "
-                  "when running dir classification"),
-            default="accuracy",
-            )
-    parser.add_argument(
-            "--output",
-            type=str,
-            metavar="<output_file/dir>",
-            help=("output path of file with classification results or "
-                  "directory containing files with classification results"),
-            required=True,
-            )
-
-    # store parsed arguments
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--input",
+                        help=("path to file or directory of files where "
+                              "data to classify is stored"),
+                        required=True)
+    parser.add_argument("--splits",
+                        type=int,
+                        help="number of splits (k) of cross validation",
+                        default=10)
+    parser.add_argument("--runs",
+                        type=int,
+                        help="number of runs (n) of cross validation",
+                        default=10)
+    parser.add_argument("--tune",
+                        choices=["randomized", "grid"],
+                        help="algorithm used to tune model hyperparameters")
+    parser.add_argument("--metric",
+                        choices=["accuracy", "precision", "recall", "f1"],
+                        help=("metric used to determine best performing task"),
+                        default="accuracy")
+    parser.add_argument("--output",
+                        help=("path to file or directory of files where "
+                              "classification reports are stored"),
+                        required=True)
     args = parser.parse_args()
-    input_path = args.input
-    output_path = args.output
 
-    # check output argument validity by checking its extension:
-    # if input is file -> output must be file with csv extension
-    # if input is dir  -> output must be dir without any extension
-    output_path_extension = (os.path.splitext(output_path))[1]
+    # Check if provided input argument is valid, meaning:
+    # Input argument is an existing file, or
+    # Input argument is an existing directory
+    if not os.path.exists(args.input):
+        raise FileNotFoundError(errno.ENOENT,
+                                os.strerror(errno.ENOENT),
+                                args.input)
 
-    # if input argument is not an existing file or directory, raise exception
-    if (not os.path.isfile(input_path)
-            and not os.path.isdir(input_path)):
-        raise ValueError(
-                input_path + " does not exist as file or directory"
-                )
+    # Get extension from output argument for later validity checks:
+    # If input is a file -> output must end with .png file
+    # If input is a directory -> output must end with no extension
+    output_arg_extension = os.path.splitext(args.output)[1]
 
-    # if input argument points to file
-    if os.path.isfile(input_path):
-        # if output argument is not a valid path to png file, raise exception
-        if output_path_extension != ".png":
-            raise ValueError(
-                    output_path + " is not a valid path to .png file"
-                    )
-        # define classifier and cross validator
-        dt = DecisionTreeClassifier()
-        cv = RepeatedStratifiedKFold(
-                n_splits=args.splits,
-                n_repeats=args.repeats
-                )
-        # run classification process on input file
-        file_classification(
-                dt,
-                cv,
-                input_path,
-                output_path,
-                dt_params,
-                args.tune
-                )
+    # Check if provided input argument contains path to file
+    if os.path.isfile(args.input):
+        if output_arg_extension != ".png":
+            raise ValueError("Not a valid path to png file: '"
+                             + args.output
+                             + "'")
+        # If everything is OK:
+        # run classification on specified input file
+        # store classification report on specified output file
+        decision_tree = DecisionTreeClassifier()
+        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
+                                                  n_repeats=args.runs)
+        file_classification(decision_tree,
+                            cross_validator,
+                            args.input,
+                            args.output,
+                            args.tune,
+                            dt_parameters,
+                            args.splits)
 
-    # check if input argument points to directory
-    if os.path.isdir(input_path):
-        # if output argument is not a valid path to directory
-        if output_path_extension != "":
-            raise ValueError(
-                    output_path + " is not a valid directory path"
-                    )
-        # define classifier and cross validator
-        dt = DecisionTreeClassifier()
-        cv = RepeatedStratifiedKFold(
-                n_splits=args.splits,
-                n_repeats=args.repeats
-                )
-        # run classification process on input directory
-        dir_classification(
-                dt,
-                cv,
-                input_path,
-                output_path,
-                dt_params,
-                args.tune,
-                args.metric
-                )
+    # Check if provided input argument contains path to directory
+    if os.path.isdir(args.input):
+        if output_arg_extension != "":
+            raise ValueError("Not a valid path to directory: '"
+                             + args.output
+                             + "'")
+        # If everything is OK:
+        # run classification on specified input directory
+        # store classification reports on specified output directory
+        decision_tree = DecisionTreeClassifier()
+        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
+                                                  n_repeats=args.runs)
+        dir_classification(decision_tree,
+                           cross_validator,
+                           args.input,
+                           args.output,
+                           args.tune,
+                           dt_parameters,
+                           args.splits,
+                           args.metric)
 
 
 if __name__ == '__main__':
