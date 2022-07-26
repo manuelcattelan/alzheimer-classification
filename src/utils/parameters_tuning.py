@@ -4,37 +4,45 @@ import numpy as np
 import time
 
 
-dt_params = {
-        "criterion": ["gini", "entropy"],
-        "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        "min_samples_split": list(np.arange(2, 20, 1)),
-        "min_samples_leaf": list(np.arange(1, 20, 1)),
-        "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))
-        }
+dt_parameters = {"criterion": ["gini", "entropy"],
+                 "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                 "min_samples_split": list(np.arange(2, 20, 1)),
+                 "min_samples_leaf": list(np.arange(1, 20, 1)),
+                 "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))}
 
 
-def tune_classifier(clf, cv, df, parameters, mode):
-    # create two subframes containing only model features and model label
+rf_parameters = {}
+
+
+svc_parameters = {}
+
+
+def tune_classifier(classifier,
+                    cross_validator,
+                    df,
+                    tune_mode,
+                    tune_parameters):
+    # Separate dataframe into two subframes:
+    # X contains all feature columns except for the label column
+    # y contains only the label column
     X = df.iloc[:, 1:-1]
     y = df.iloc[:, -1]
 
-    # based on mode argument, run randomized search or grid search
-    match mode:
+    # Based on tune_mode, initialize tuner
+    # to RandomizedSearch or GridSearch
+    match tune_mode:
         case "randomized":
-            tuner = RandomizedSearchCV(
-                    estimator=clf,
-                    param_distributions=parameters,
-                    cv=cv,
-                    )
+            tuner = RandomizedSearchCV(estimator=classifier,
+                                       param_distributions=tune_parameters,
+                                       cv=cross_validator)
         case "grid":
-            tuner = GridSearchCV(
-                    estimator=clf,
-                    param_grid=parameters,
-                    cv=cv,
-                    )
-    # time parameter tuning
+            tuner = GridSearchCV(estimator=classifier,
+                                 param_grid=tune_parameters,
+                                 cv=cross_validator)
     start = time.time()
-    # start parameter tuning
+    # Tune parameters on dataframe
     tuner.fit(X, y)
 
-    return tuner.best_estimator_, tuner.best_params_, time.time() - start
+    return (tuner.best_estimator_,
+            tuner.best_estimator_.get_params(),
+            time.time() - start)
