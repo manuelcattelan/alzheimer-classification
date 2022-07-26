@@ -19,7 +19,7 @@ def scan_input_dir(input_path,
         content_input_path = os.path.join(input_path, content)
         content_output_path = os.path.join(output_path, content)
         # If content contains path to csv file,
-        # append its paths to the corresponding path lists 
+        # append its paths to the corresponding path lists
         if (os.path.isfile(content_input_path)
                 and os.path.splitext(content_input_path)[1] == ".csv"):
             input_path_list[input_path].append(content_input_path)
