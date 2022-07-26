@@ -28,7 +28,7 @@ def main():
                         choices=["randomized", "grid"],
                         help="algorithm used to tune model hyperparameters")
     parser.add_argument("--metric",
-                        choices=["accuracy", "precision", "recall", "f1"],
+                        choices=["accuracy", "precision", "recall"],
                         help=("metric used to determine best performing task"),
                         default="accuracy")
     parser.add_argument("--output",
