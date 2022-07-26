@@ -2,8 +2,6 @@ from src.utils.scan_input import scan_input_dir
 from src.utils.parameters_tuning import tune_classifier
 from src.utils.performance import compute_classifier_performance
 from src.utils.performance import compute_best_task_performance
-from src.utils.reports import print_file_classification_report
-from src.utils.reports import print_dir_classification_report
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import numpy as np
@@ -82,8 +80,11 @@ def file_classification(
     # run parameters tuning if tune argument is not None
     if tune_arg:
         clf, tuning_best_params, tuning_time = tune_classifier(
-                clf, cv, tune_params, df, tune_arg
+                clf, cv, df, tune_params, tune_arg
                 )
+    else:
+        tuning_best_params = clf.get_params()
+        tuning_time = None
     # run classification
     splits_cm, splits_train_time, splits_test_time = run_classification(
             clf, cv, df
@@ -95,7 +96,11 @@ def file_classification(
              splits_cm, splits_train_time, splits_test_time
              )
 
-    return task_performance, task_train_time, task_test_time
+    return (task_performance,
+            task_train_time,
+            task_test_time,
+            tuning_best_params,
+            tuning_time)
 
 
 def dir_classification(
@@ -135,7 +140,7 @@ def dir_classification(
             tasks_train_time = []
             tasks_test_time = []
             tasks_best_params = []
-            tasks_tuning_times = []
+            tasks_tuning_time = []
 
             # for each file inside currently considered dir
             for input_filepath, output_filepath in zip(
@@ -145,7 +150,9 @@ def dir_classification(
                 # run classification process on file
                 (task_performance,
                  task_train_time,
-                 task_test_time) = file_classification(
+                 task_test_time,
+                 task_best_params,
+                 task_tuning_time) = file_classification(
                          clf,
                          cv,
                          input_filepath,
@@ -157,6 +164,8 @@ def dir_classification(
                 tasks_performance.append(task_performance)
                 tasks_train_time.append(task_train_time)
                 tasks_test_time.append(task_test_time)
+                tasks_best_params.append(task_best_params)
+                tasks_tuning_time.append(task_tuning_time)
 
             # compute best task
             (best_task_performance,
@@ -169,7 +178,7 @@ def dir_classification(
                 metric_arg
                 )
 
-            # compute classification total time and per avg time per task
+            # compute classification total time and avg time per task
             total_train_time = sum(time for time in tasks_train_time)
             total_test_time = sum(time for time in tasks_test_time)
             avg_train_time = np.mean([time for time in tasks_train_time])
