@@ -1,6 +1,8 @@
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from scipy import stats
+from src.utils.scan_input import scan_input_dir
+import pandas as pd
 import numpy as np
 import os
 
@@ -93,3 +95,40 @@ def run_preprocessing(df_raw):
     df_cleaned = clean_data(df_mapped)
 
     return df_cleaned
+
+
+def file_preprocessing(input_path, output_path):
+    # read raw data from input path
+    df_to_process = pd.read_csv(
+            input_path, sep=";", converters={"Sex": str.strip,
+                                             "Work": str.strip,
+                                             "Label": str.strip
+                                             }
+            )
+    # preprocess file pointed by input path
+    df_processed = run_preprocessing(
+            df_to_process
+            )
+    # export processed file to output path
+    export_data(
+            df_processed, output_path
+            )
+
+
+def dir_preprocessing(input_path, output_path):
+    # get input file path and build corresponding output file path
+    # of all files inside input directory
+    (input_paths,
+     output_paths) = scan_input_dir(
+            input_path, output_path
+            )
+    # for each directory found while traversing input dir
+    for input_dirpath, output_dirpath in zip(
+            sorted(input_paths),
+            sorted(output_paths)):
+        # for each file inside currently considered dir
+        for input_filepath, output_filepath in zip(
+                sorted(input_paths[input_dirpath]),
+                sorted(output_paths[output_dirpath])):
+            # run single file preprocessing
+            file_preprocessing(input_filepath, output_filepath)
