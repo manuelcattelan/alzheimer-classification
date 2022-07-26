@@ -113,7 +113,7 @@ def file_classification(classifier,
                                           splits)
     # Compute classification report
     classification_report = compute_classification_report(run_results_dict)
-    print_classification_report(classification_report)
+    print_classification_report(input_path, classification_report)
 
 
 def dir_classification(classifier,
