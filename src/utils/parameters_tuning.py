@@ -13,7 +13,7 @@ dt_params = {
         }
 
 
-def tune_classifier(clf, cv, parameters, df, mode):
+def tune_classifier(clf, cv, df, parameters, mode):
     # create two subframes containing only model features and model label
     X = df.iloc[:, 1:-1]
     y = df.iloc[:, -1]
