@@ -13,7 +13,6 @@ def compute_runs_report(run_results_dict):
         # Lists holding classification times
         train_times = []
         test_times = []
-
         for confusion_matrix, times in zip(run_results_dict[run][0],
                                            run_results_dict[run][1]):
             # Ravel currently evaluated confusion matrix
@@ -27,7 +26,6 @@ def compute_runs_report(run_results_dict):
             # Append classification times to corresponding lists
             train_times.append(times[0])
             test_times.append(times[1])
-
         # Compute mean and variance
         # for all metric arrays
         run_performance = ((np.mean(accuracies), np.var(accuracies)),
@@ -38,7 +36,7 @@ def compute_runs_report(run_results_dict):
                      sum(time for time in test_times))
         # Append currently evaluated run results
         # to corresponding entry in classification report
-        runs_report[run] = (run_performance,run_times)
+        runs_report[run] = (run_performance, run_times)
 
     return runs_report
 
@@ -50,6 +48,8 @@ def compute_classification_report(runs_report):
     precision_variance_list = []
     recall_mean_list = []
     recall_variance_list = []
+    train_time_list = []
+    test_time_list = []
     for run in runs_report:
         acc_mean = runs_report[run][0][0][0]
         acc_var = runs_report[run][0][0][1]
@@ -66,6 +66,8 @@ def compute_classification_report(runs_report):
         accuracy_variance_list.append(acc_var)
         precision_variance_list.append(prec_var)
         recall_variance_list.append(rec_var)
+        train_time_list.append(train_time)
+        test_time_list.append(test_time)
 
     accuracy_mean = np.mean(accuracy_mean_list)
     accuracy_stdev = np.sqrt(np.mean(accuracy_variance_list))
@@ -73,7 +75,10 @@ def compute_classification_report(runs_report):
     precision_stdev = np.sqrt(np.mean(precision_variance_list))
     recall_mean = np.mean(recall_mean_list)
     recall_stdev = np.sqrt(np.mean(recall_variance_list))
+    t_train_time = np.sum(train_time_list)
+    t_test_time = np.sum(test_time_list)
 
     return ((accuracy_mean, accuracy_stdev),
             (precision_mean, precision_stdev),
-            (recall_mean, recall_stdev))
+            (recall_mean, recall_stdev),
+            (t_train_time, t_test_time))
