@@ -70,8 +70,9 @@ def run_classification(classifier, cross_validator, df, splits):
                                                                    y,
                                                                    test_index)
         # Compute split results and append them in corresponding lists
-        split_confusion_matrix_list.append(confusion_matrix(true_labels,
-                                                            predicted_labels))
+        split_confusion_matrix = confusion_matrix(true_labels,
+                                                  predicted_labels)
+        split_confusion_matrix_list.append(split_confusion_matrix)
         split_times_list.append((train_time, test_time))
         # If current run is over (all splits were evaluated)
         if split_iter == splits:
