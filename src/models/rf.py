@@ -63,8 +63,8 @@ def main():
 
     # Check if provided input argument contains path to file
     if os.path.isfile(args.input):
-        if output_arg_extension != ".png":
-            raise ValueError("Not a valid path to png file: '"
+        if output_arg_extension != ".csv":
+            raise ValueError("Not a valid path to csv file: '"
                              + args.output
                              + "'")
         # If everything is OK:
