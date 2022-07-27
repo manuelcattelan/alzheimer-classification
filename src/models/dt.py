@@ -16,17 +16,26 @@ def main():
                         help=("path to file or directory of files where "
                               "data to classify is stored"),
                         required=True)
+    parser.add_argument("--output",
+                        help=("path to file or directory of files where "
+                              "classification reports are stored"),
+                        required=True)
     parser.add_argument("--splits",
                         type=int,
-                        help="number of splits (k) of cross validation",
+                        help="number of splits (k) for cross validation",
                         default=10)
     parser.add_argument("--runs",
                         type=int,
-                        help="number of runs (n) of cross validation",
+                        help="number of runs (n) for cross validation",
                         default=10)
     parser.add_argument("--tune",
                         choices=["randomized", "grid"],
                         help="algorithm used to tune model hyperparameters")
+    parser.add_argument("--iter",
+                        type=int,
+                        help="number of iterations for randomized parameter "
+                             "tuning (ignored by grid search)",
+                        default=10)
     parser.add_argument("--metric",
                         choices=["accuracy", "precision", "recall"],
                         help=("metric used to determine best performing task"),
@@ -37,10 +46,6 @@ def main():
                               "classification execution (-1 means using "
                               "all processors)"),
                         default=None)
-    parser.add_argument("--output",
-                        help=("path to file or directory of files where "
-                              "classification reports are stored"),
-                        required=True)
     args = parser.parse_args()
 
     # Check if provided input argument is valid, meaning:
@@ -75,6 +80,7 @@ def main():
                             False,
                             args.jobs,
                             args.tune,
+                            args.iter,
                             dt_parameters,
                             args.splits)
 
@@ -97,6 +103,7 @@ def main():
                            False,
                            args.jobs,
                            args.tune,
+                           args.iter,
                            dt_parameters,
                            args.splits,
                            args.metric)

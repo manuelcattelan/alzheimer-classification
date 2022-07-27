@@ -99,6 +99,7 @@ def file_classification(classifier,
                         normalize,
                         jobs,
                         tune_mode,
+                        tune_iter,
                         tune_parameters,
                         splits):
     # Read data from input path into dataframe
@@ -114,6 +115,7 @@ def file_classification(classifier,
                                       df,
                                       jobs,
                                       tune_mode,
+                                      tune_iter,
                                       tune_parameters)
     # Run classification on dataframe
     run_results_dict = run_classification(classifier,
@@ -140,6 +142,7 @@ def dir_classification(classifier,
                        normalize,
                        jobs,
                        tune_mode,
+                       tune_iter,
                        tune_parameters,
                        splits,
                        metric):
@@ -164,5 +167,6 @@ def dir_classification(classifier,
                                 normalize,
                                 jobs,
                                 tune_mode,
+                                tune_iter,
                                 tune_parameters,
                                 splits)

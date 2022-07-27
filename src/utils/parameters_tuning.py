@@ -31,6 +31,7 @@ def tune_classifier(classifier,
                     df,
                     jobs,
                     tune_mode,
+                    tune_iter,
                     tune_parameters):
     # Separate dataframe into two subframes:
     # X contains all feature columns except for the label column
@@ -45,6 +46,7 @@ def tune_classifier(classifier,
             tuner = RandomizedSearchCV(estimator=classifier,
                                        param_distributions=tune_parameters,
                                        cv=cross_validator,
+                                       n_iter=tune_iter,
                                        n_jobs=jobs)
         case "grid":
             tuner = GridSearchCV(estimator=classifier,
