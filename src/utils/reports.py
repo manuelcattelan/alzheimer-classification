@@ -55,11 +55,11 @@ def plot_classification_report(input, classification_report):
            alpha=0.5,
            ecolor='black',
            capsize = 10)
-    ax.set_ylabel("Classification result")
+    ax.set_ylabel("Score [%]")
     ax.set_xticks(x_pos)
     ax.set_yticks(y_pos)
     ax.set_xticklabels(metrics)
-    ax.set_title("Classification report for " + input)
+    ax.set_title("CLASSIFICATION REPORT FOR '{}'".format(input))
 
     plt.tight_layout()
     plt.show()
