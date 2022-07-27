@@ -18,9 +18,11 @@ def compute_runs_report(run_results_dict):
                                            run_results_dict[run][1]):
             # Ravel currently evaluated confusion matrix
             tn, fp, fn, tp = confusion_matrix.ravel()
+            # With very small folds, there may be no positive class samples
+            if (tp + fp) != 0:
+                precisions.append((tp / (tp + fp) * 100))
             # Compute and append performance metrics to corresponding lists
             accuracies.append((tp + tn) / (tn + fp + fn + tp) * 100)
-            precisions.append((tp / (tp + fp) * 100))
             recalls.append((tp / (tp + fn) * 100))
             # Append classification times to corresponding lists
             train_times.append(times[0])
