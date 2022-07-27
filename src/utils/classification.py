@@ -1,7 +1,9 @@
 from src.utils.scan_input import scan_input_dir
 from src.utils.parameters_tuning import tune_classifier
+from src.utils.performance import compute_runs_report
 from src.utils.performance import compute_classification_report
-from src.utils.reports import print_classification_report
+from src.utils.reports import print_runs_report
+from src.utils.reports import plot_classification_report
 from sklearn.metrics import confusion_matrix
 import pandas as pd
 import numpy as np
@@ -112,8 +114,10 @@ def file_classification(classifier,
                                           df,
                                           splits)
     # Compute classification report
-    classification_report = compute_classification_report(run_results_dict)
-    print_classification_report(input_path, classification_report)
+    runs_report = compute_runs_report(run_results_dict)
+    print_runs_report(input_path, runs_report)
+    classification_report = compute_classification_report(runs_report)
+    plot_classification_report(input_path, classification_report)
 
 
 def dir_classification(classifier,
