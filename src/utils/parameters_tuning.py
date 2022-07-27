@@ -11,7 +11,12 @@ dt_parameters = {"criterion": ["gini", "entropy"],
                  "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))}
 
 
-rf_parameters = {}
+rf_parameters = {"criterion": ["gini", "entropy"],
+                 "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                 "min_samples_split": list(np.arange(2, 20, 1)),
+                 "min_samples_leaf": list(np.arange(1, 20, 1)),
+                 "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1)),
+                 "bootstrap": [True, False]}
 
 
 svc_parameters = {}
@@ -20,6 +25,7 @@ svc_parameters = {}
 def tune_classifier(classifier,
                     cross_validator,
                     df,
+                    jobs,
                     tune_mode,
                     tune_parameters):
     # Separate dataframe into two subframes:
@@ -34,11 +40,13 @@ def tune_classifier(classifier,
         case "randomized":
             tuner = RandomizedSearchCV(estimator=classifier,
                                        param_distributions=tune_parameters,
-                                       cv=cross_validator)
+                                       cv=cross_validator,
+                                       n_jobs=jobs)
         case "grid":
             tuner = GridSearchCV(estimator=classifier,
                                  param_grid=tune_parameters,
-                                 cv=cross_validator)
+                                 cv=cross_validator,
+                                 n_jobs=jobs)
     start = time.time()
     # Tune parameters on dataframe
     tuner.fit(X, y)

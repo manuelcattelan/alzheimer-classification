@@ -31,6 +31,12 @@ def main():
                         choices=["accuracy", "precision", "recall"],
                         help=("metric used to determine best performing task"),
                         default="accuracy")
+    parser.add_argument("--jobs",
+                        type=int,
+                        help=("number of jobs to run in parallel during "
+                              "classification execution (-1 means using "
+                              "all processors)"),
+                        default=None)
     parser.add_argument("--output",
                         help=("path to file or directory of files where "
                               "classification reports are stored"),
@@ -67,6 +73,7 @@ def main():
                             args.input,
                             args.output,
                             False,
+                            args.jobs,
                             args.tune,
                             dt_parameters,
                             args.splits)
@@ -88,6 +95,7 @@ def main():
                            args.input,
                            args.output,
                            False,
+                           args.jobs,
                            args.tune,
                            dt_parameters,
                            args.splits,
