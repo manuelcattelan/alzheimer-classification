@@ -20,6 +20,8 @@ def compute_runs_report(run_results_dict):
             # With very small folds, there may be no positive class samples
             if (tp + fp) != 0:
                 precisions.append((tp / (tp + fp) * 100))
+            else:
+                precisions.append(0)
             # Compute and append performance metrics to corresponding lists
             accuracies.append((tp + tn) / (tn + fp + fn + tp) * 100)
             recalls.append((tp / (tp + fn) * 100))
