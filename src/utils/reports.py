@@ -13,7 +13,7 @@ def print_runs_report(input, runs_report, tune, tune_parameters, tune_time):
             print("\t[{}] = {}"
                   .format(parameter, tune_parameters[parameter]))
     else:
-        print("TU")
+        print("Tuning was not required, using default classifier parameters.")
     for run in runs_report:
         acc_mean = runs_report[run][0][0][0]
         acc_var = runs_report[run][0][0][1]
@@ -70,9 +70,9 @@ def export_classification_report(input, classification_report, output):
            CTEs,
            yerr=error,
            align='center',
-           alpha=0.5,
            ecolor='black',
-           capsize=10)
+           edgecolor='black',
+           capsize=5)
     ax.set_title("CLASSIFICATION REPORT FOR '{}'".format(input))
     ax.set_xticks(x_pos)
     ax.set_xticklabels(metrics)
