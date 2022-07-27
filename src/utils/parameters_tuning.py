@@ -14,7 +14,6 @@ dt_parameters = {"criterion": ["gini", "entropy"],
 
 rf_parameters = {"n_estimators": [50, 100, 150, 200, 250],
                  "criterion": ["gini", "entropy"],
-                 "splitter": ["best", "random"],
                  "max_depth": [None, 1, 3, 5, 8, 10],
                  "min_samples_split": [2, 5, 10, 15, 20],
                  "min_samples_leaf": [1, 5, 10, 15 ,20],
