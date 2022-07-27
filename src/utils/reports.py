@@ -1,45 +1,80 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 import os
 
 
-def print_runs_report(input, runs_report, tune, tune_parameters, tune_time):
-    print("CLASSIFICATION REPORT FOR '{}'". format(input))
-    if tune:
-        print("Tuning took {:.3f}s and produced the following best parameters:"
-              .format(tune_time))
-        for parameter in tune_parameters:
-            print("\t[{}] = {}"
-                  .format(parameter, tune_parameters[parameter]))
-    else:
-        print("Tuning was not required, using default classifier parameters.")
-    for run in runs_report:
-        acc_mean = runs_report[run][0][0][0]
-        acc_var = runs_report[run][0][0][1]
-        prec_mean = runs_report[run][0][1][0]
-        prec_var = runs_report[run][0][1][1]
-        rec_mean = runs_report[run][0][2][0]
-        rec_var = runs_report[run][0][2][1]
-        train_time = runs_report[run][1][0]
-        test_time = runs_report[run][1][1]
-        print("Run [{}]:".format(run))
-        print("\tAccuracy:"
-              "\tmean={:.1f}%"
-              "\tstdev={:.1f}%"
-              .format(acc_mean, np.sqrt(acc_var)))
-        print("\tPrecision:"
-              "\tmean={:.1f}%"
-              "\tstdev={:.1f}%"
-              .format(prec_mean, np.sqrt(prec_var)))
-        print("\tRecall:"
-              "\t\tmean={:.1f}%"
-              "\tstdev={:.1f}%"
-              .format(rec_mean, np.sqrt(rec_var)))
-        print("\tTimes:"
-              "\t\ttraining={:.3f}s"
-              "\ttesting={:.3f}s"
-              .format(train_time, test_time))
+def export_runs_report(input,
+                       runs_report,
+                       tune,
+                       tune_parameters,
+                       tune_time,
+                       output):
+    output_dirname = Path(os.path.dirname(output))
+    output_dirname.mkdir(parents=True, exist_ok=True)
+    output_with_no_suffix = Path(output).with_suffix("")
+    output_with_csv_suffix = Path(output_with_no_suffix).with_suffix(".csv")
+
+    with open(output_with_csv_suffix, 'w+', newline='') as csvfile:
+        if tune:
+            header = ["n_Run",
+                      "Model parameters",
+                      "Accuracy mean",
+                      "Accuracy stdev",
+                      "Precision mean",
+                      "Precision stdev",
+                      "Recall mean",
+                      "Recall stdev",
+                      "Train time",
+                      "Test time",
+                      "Tune time"]
+        else:
+            header = ["n_Run",
+                      "Accuracy mean",
+                      "Accuracy stdev",
+                      "Precision mean",
+                      "Precision stdev",
+                      "Recall mean",
+                      "Recall stdev",
+                      "Train time",
+                      "Test time"]
+        writer = csv.writer(csvfile)
+        writer.writerow(header)
+        for run in runs_report:
+            acc_mean = runs_report[run][0][0][0]
+            acc_var = runs_report[run][0][0][1]
+            prec_mean = runs_report[run][0][1][0]
+            prec_var = runs_report[run][0][1][1]
+            rec_mean = runs_report[run][0][2][0]
+            rec_var = runs_report[run][0][2][1]
+            train_time = runs_report[run][1][0]
+            test_time = runs_report[run][1][1]
+
+            if tune:
+                data = [run,
+                        tune_parameters,
+                        format(acc_mean, ".1f"),
+                        format(np.sqrt(acc_var), ".1f"),
+                        format(prec_mean, ".1f"),
+                        format(np.sqrt(prec_var), ".1f"),
+                        format(rec_mean, ".1f"),
+                        format(np.sqrt(rec_var), ".1f"),
+                        format(train_time, ".5f"),
+                        format(test_time, ".5f"),
+                        format(tune_time, ".3f")]
+            else:
+                data = [run,
+                        format(acc_mean, ".1f"),
+                        format(np.sqrt(acc_var), ".1f"),
+                        format(prec_mean, ".1f"),
+                        format(np.sqrt(prec_var), ".1f"),
+                        format(rec_mean, ".1f"),
+                        format(np.sqrt(rec_var), ".1f"),
+                        format(train_time, ".5f"),
+                        format(test_time, ".5f")]
+                
+            writer.writerow(data)
 
 
 def export_classification_report(input, classification_report, output):

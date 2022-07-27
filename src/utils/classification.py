@@ -3,7 +3,7 @@ from src.utils.preprocessing import normalize_data
 from src.utils.parameters_tuning import tune_classifier
 from src.utils.performance import compute_runs_report
 from src.utils.performance import compute_classification_report
-from src.utils.reports import print_runs_report
+from src.utils.reports import export_runs_report
 from src.utils.reports import export_classification_report
 from sklearn.metrics import confusion_matrix
 import pandas as pd
@@ -127,11 +127,12 @@ def file_classification(classifier,
                                           splits)
     # Compute classification report
     runs_report = compute_runs_report(run_results_dict)
-    print_runs_report(input_path,
-                      runs_report,
-                      tune_mode,
-                      classifier_best_parameters,
-                      tune_time)
+    export_runs_report(input_path,
+                       runs_report,
+                       tune_mode,
+                       classifier_best_parameters,
+                       tune_time,
+                       output_path)
     classification_report = compute_classification_report(runs_report)
     export_classification_report(input_path,
                                  classification_report,
