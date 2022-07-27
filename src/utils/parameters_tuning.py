@@ -11,7 +11,8 @@ dt_parameters = {"criterion": ["gini", "entropy"],
                  "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))}
 
 
-rf_parameters = {"criterion": ["gini", "entropy"],
+rf_parameters = {"n_estimators": list(np.arange(25, 300, 25)),
+                 "criterion": ["gini", "entropy"],
                  "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  "min_samples_split": list(np.arange(2, 20, 1)),
                  "min_samples_leaf": list(np.arange(1, 20, 1)),
@@ -19,7 +20,10 @@ rf_parameters = {"criterion": ["gini", "entropy"],
                  "bootstrap": [True, False]}
 
 
-svc_parameters = {}
+svc_parameters = {"C": [0.1, 1, 10, 100, 1000],
+                  "kernel": ["linear", "poly", "rbf"],
+                  "degree": list(np.arange(1, 10, 1)),
+                  "gamma": ["scale", "auto", 0.0001, 0.001, 0.1, 1, 10, 100]}
 
 
 def tune_classifier(classifier,
@@ -52,5 +56,5 @@ def tune_classifier(classifier,
     tuner.fit(X, y)
 
     return (tuner.best_estimator_,
-            tuner.best_estimator_.get_params(),
+            tuner.best_params_,
             time.time() - start)
