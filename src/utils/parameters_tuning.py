@@ -7,7 +7,7 @@ import time
 dt_parameters = {"criterion": ["gini", "entropy"],
                  "splitter": ["best", "random"],
                  "max_depth": [None, 1, 3, 5, 8, 10],
-                 "min_samples_split": [2, 10, 20, 30, 40],
+                 "min_samples_split": [2, 5, 10, 15, 20],
                  "min_samples_leaf": [1, 5, 10, 15, 20],
                  "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5]}
 
@@ -16,7 +16,7 @@ rf_parameters = {"n_estimators": [50, 100, 150, 200, 250],
                  "criterion": ["gini", "entropy"],
                  "splitter": ["best", "random"],
                  "max_depth": [None, 1, 3, 5, 8, 10],
-                 "min_samples_split": [2, 10, 20, 30, 40],
+                 "min_samples_split": [2, 5, 10, 15, 20],
                  "min_samples_leaf": [1, 5, 10, 15 ,20],
                  "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5],
                  "bootstrap": [True, False]}
