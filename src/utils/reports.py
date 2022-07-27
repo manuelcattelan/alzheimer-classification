@@ -58,6 +58,13 @@ def export_classification_report(input, classification_report, output):
     x_pos = np.arange(len(metrics))
     y_pos = np.arange(0, 100 + 10, 10)
 
+    performance_text = ("\nAccuracy mean={:.1f}%\nAccuracy stdev={:.1f}%"
+                        "\n\nPrecision mean={:.1f}%\nPrecision stdev={:.1f}%"
+                        "\n\nRecall mean={:.1f}%\nRecall stdev={:.1f}%"
+                        .format(accuracy_mean, accuracy_stdev,
+                                precision_mean, precision_stdev,
+                                recall_mean, recall_stdev))
+
     fig, ax = plt.subplots()
     ax.bar(x_pos,
            CTEs,
@@ -66,15 +73,18 @@ def export_classification_report(input, classification_report, output):
            alpha=0.5,
            ecolor='black',
            capsize=10)
-    ax.set_ylabel("Score [%]")
-    ax.set_xticks(x_pos)
-    ax.set_yticks(y_pos)
-    ax.set_xticklabels(metrics)
     ax.set_title("CLASSIFICATION REPORT FOR '{}'".format(input))
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(metrics)
+    ax.set_xlabel(performance_text)
+    ax.set_ylabel("Score [%]")
+    ax.set_yticks(y_pos)
 
     output_dirname = Path(os.path.dirname(output))
     output_dirname.mkdir(parents=True, exist_ok=True)
+    output_with_no_suffix = Path(output).with_suffix("")
+    output_with_png_suffix = Path(output_with_no_suffix).with_suffix(".png")
 
     plt.tight_layout()
-    plt.savefig(output, bbox_inches="tight", dpi=400)
+    plt.savefig(output_with_png_suffix, bbox_inches="tight", dpi=400)
     plt.close()
