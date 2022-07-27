@@ -5,24 +5,26 @@ import time
 
 
 dt_parameters = {"criterion": ["gini", "entropy"],
-                 "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                 "min_samples_split": list(np.arange(2, 20, 1)),
-                 "min_samples_leaf": list(np.arange(1, 20, 1)),
-                 "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1))}
+                 "splitter": ["best", "random"],
+                 "max_depth": [None, 1, 3, 5, 8, 10],
+                 "min_samples_split": [2, 10, 20, 30, 40],
+                 "min_samples_leaf": [1, 5, 10, 15, 20],
+                 "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5]}
 
 
-rf_parameters = {"n_estimators": list(np.arange(25, 300, 25)),
+rf_parameters = {"n_estimators": [50, 100, 150, 200, 250],
                  "criterion": ["gini", "entropy"],
-                 "max_depth": [None, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                 "min_samples_split": list(np.arange(2, 20, 1)),
-                 "min_samples_leaf": list(np.arange(1, 20, 1)),
-                 "min_impurity_decrease": list(np.arange(0.0, 0.5, 0.1)),
+                 "splitter": ["best", "random"],
+                 "max_depth": [None, 1, 3, 5, 8, 10],
+                 "min_samples_split": [2, 10, 20, 30, 40],
+                 "min_samples_leaf": [1, 5, 10, 15 ,20],
+                 "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5],
                  "bootstrap": [True, False]}
 
 
 svc_parameters = {"C": [0.1, 1, 10, 100, 1000],
                   "kernel": ["linear", "poly", "rbf"],
-                  "degree": list(np.arange(1, 10, 1)),
+                  "degree": [1, 2, 3, 4, 5],
                   "gamma": ["scale", "auto", 0.0001, 0.001, 0.1, 1, 10, 100]}
 
 
