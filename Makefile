@@ -5,9 +5,11 @@ ENV_CONFIG = environment.yml
 
 DEFAULT_RAW_DATA = data/raw
 DEFAULT_PROCESSED_DATA = data/processed
+DEFAULT_REPORTS_DATA = reports
 
 raw ?= $(DEFAULT_RAW_DATA)
 processed ?= $(DEFAULT_PROCESSED_DATA)
+reports ?= $(DEFAULT_REPORTS_DATA)
 
 create_environment:
 	conda env create --name $(ENV_NAME) --file $(ENV_CONFIG)
