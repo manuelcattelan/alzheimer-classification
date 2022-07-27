@@ -1,9 +1,19 @@
+from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
-def print_runs_report(input, runs_report):
-    print("RUNS REPORT FOR '{}'". format(input))
+def print_runs_report(input, runs_report, tune, tune_parameters, tune_time):
+    print("CLASSIFICATION REPORT FOR '{}'". format(input))
+    if tune:
+        print("Tuning took {:.3f}s and produced the following best parameters:"
+              .format(tune_time))
+        for parameter in tune_parameters:
+            print("\t[{}] = {}"
+                  .format(parameter, tune_parameters[parameter]))
+    else:
+        print("TU")
     for run in runs_report:
         acc_mean = runs_report[run][0][0][0]
         acc_var = runs_report[run][0][0][1]
@@ -31,7 +41,8 @@ def print_runs_report(input, runs_report):
               "\ttesting={:.3f}s"
               .format(train_time, test_time))
 
-def plot_classification_report(input, classification_report):
+
+def export_classification_report(input, classification_report, output):
     metrics = ["Accuracy", "Precision", "Recall"]
 
     accuracy_mean = classification_report[0][0]
@@ -54,12 +65,16 @@ def plot_classification_report(input, classification_report):
            align='center',
            alpha=0.5,
            ecolor='black',
-           capsize = 10)
+           capsize=10)
     ax.set_ylabel("Score [%]")
     ax.set_xticks(x_pos)
     ax.set_yticks(y_pos)
     ax.set_xticklabels(metrics)
     ax.set_title("CLASSIFICATION REPORT FOR '{}'".format(input))
 
+    output_dirname = Path(os.path.dirname(output))
+    output_dirname.mkdir(parents=True, exist_ok=True)
+
     plt.tight_layout()
-    plt.show()
+    plt.savefig(output, bbox_inches="tight", dpi=400)
+    plt.close()
