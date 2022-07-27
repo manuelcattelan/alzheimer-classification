@@ -117,6 +117,9 @@ def file_classification(classifier,
                                       tune_mode,
                                       tune_iter,
                                       tune_parameters)
+    else:
+        classifier_best_parameters = classifier.get_params()
+        tune_time = None
     # Run classification on dataframe
     run_results_dict = run_classification(classifier,
                                           cross_validator,
