@@ -1,4 +1,5 @@
 from src.utils.scan_input import scan_input_dir
+from src.utils.preprocessing import normalize_data
 from src.utils.parameters_tuning import tune_classifier
 from src.utils.performance import compute_runs_report
 from src.utils.performance import compute_classification_report
@@ -95,11 +96,14 @@ def file_classification(classifier,
                         cross_validator,
                         input_path,
                         output_path,
+                        normalize,
                         tune_mode,
                         tune_parameters,
                         splits):
     # Read data from input path into dataframe
     df = pd.read_csv(input_path, sep=";")
+    if normalize:
+        df = normalize_data(df)
     # If tune_mode is specified, run parameter tuning
     if tune_mode:
         (classifier,
@@ -125,6 +129,7 @@ def dir_classification(classifier,
                        cross_validator,
                        input_path,
                        output_path,
+                       normalize,
                        tune_mode,
                        tune_parameters,
                        splits,
@@ -147,6 +152,7 @@ def dir_classification(classifier,
                                 cross_validator,
                                 input_filepath,
                                 output_filepath,
+                                normalize,
                                 tune_mode,
                                 tune_parameters,
                                 splits)

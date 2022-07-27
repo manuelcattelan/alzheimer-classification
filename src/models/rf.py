@@ -66,6 +66,7 @@ def main():
                             cross_validator,
                             args.input,
                             args.output,
+                            False,
                             args.tune,
                             rf_parameters,
                             args.splits)
@@ -86,6 +87,7 @@ def main():
                            cross_validator,
                            args.input,
                            args.output,
+                           False,
                            args.tune,
                            rf_parameters,
                            args.splits,
