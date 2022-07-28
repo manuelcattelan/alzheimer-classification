@@ -18,9 +18,15 @@ def compute_runs_report(run_results_dict):
             # Ravel currently evaluated confusion matrix
             tn, fp, fn, tp = split_cm.ravel()
             # Compute and append performance metrics to corresponding lists
-            precisions.append((tp / (tp + fp) * 100))
             accuracies.append((tp + tn) / (tn + fp + fn + tp) * 100)
-            recalls.append((tp / (tp + fn) * 100))
+            if (tp + fp) != 0:
+                precisions.append((tp / (tp + fp) * 100))
+            else:
+                precisions.append(0)
+            if (tp + fn) != 0:
+                recalls.append((tp / (tp + fn) * 100))
+            else:
+                recalls.append(0)
             # Append classification times to corresponding lists
             train_times.append(split_times[0])
             test_times.append(split_times[1])
