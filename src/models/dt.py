@@ -23,11 +23,11 @@ def main():
     parser.add_argument("--splits",
                         type=int,
                         help="number of splits (k) for cross validation",
-                        default=10)
+                        default=5)
     parser.add_argument("--runs",
                         type=int,
                         help="number of runs (n) for cross validation",
-                        default=10)
+                        default=20)
     parser.add_argument("--tune",
                         choices=["randomized", "grid"],
                         help="algorithm used to tune model hyperparameters")
@@ -43,9 +43,9 @@ def main():
     parser.add_argument("--jobs",
                         type=int,
                         help=("number of jobs to run in parallel during "
-                              "classification execution (-1 means using "
-                              "all processors)"),
-                        default=None)
+                              "classification execution (-1 meaning "
+                              "all available processors will be used)"),
+                        default=1)
     args = parser.parse_args()
 
     # Check if provided input argument is valid, meaning:
