@@ -86,8 +86,8 @@ def export_data(df_to_export, output_path):
 
 def run_preprocessing(df_raw):
     # Run data preprocessing steps
-    df_mapped = map_data(df_raw)
-    df_cleaned = clean_data(df_mapped)
+    df_mapped = map_data(df_to_map=df_raw)
+    df_cleaned = clean_data(df_to_clean=df_mapped)
 
     return df_cleaned
 
@@ -100,16 +100,18 @@ def file_preprocessing(input_path, output_path):
                                                "Work": str.strip,
                                                "Label": str.strip})
     # Preprocess raw dataframe
-    df_preprocessed = run_preprocessing(df_to_preprocess)
+    df_preprocessed = run_preprocessing(df_raw=df_to_preprocess)
     # Export preprocessed dataframe to output path
-    export_data(df_preprocessed, output_path)
+    export_data(df_to_export=df_preprocessed,
+                output_path=output_path)
 
 
 def dir_preprocessing(input_path, output_path):
     # Recursively scan input path in order to:
     # build a list of all input paths to read
     # build a list of all corresponding output paths to write
-    input_path_list, output_path_list = scan_input_dir(input_path, output_path)
+    input_path_list, output_path_list = scan_input_dir(input_path=input_path,
+                                                       output_path=output_path)
     # For each directory path found while traversing input path
     for input_dirpath, output_dirpath in zip(sorted(input_path_list),
                                              sorted(output_path_list)):
@@ -119,4 +121,5 @@ def dir_preprocessing(input_path, output_path):
                 sorted(output_path_list[output_dirpath])):
             # Run preprocessing on specified input file
             # Store preprocessed data on specified output file
-            file_preprocessing(input_filepath, output_filepath)
+            file_preprocessing(input_path=input_filepath,
+                               output_path=output_filepath)

@@ -41,7 +41,8 @@ def main():
         # If everything is OK:
         # run preprocessing on specified input file
         # store preprocessed data on specified output file
-        file_preprocessing(args.input, args.output)
+        file_preprocessing(input_path=args.input,
+                           output_path=args.output)
 
     # Check if provided input argument contains path to directory
     if os.path.isdir(args.input):
@@ -52,7 +53,8 @@ def main():
         # If everything is OK:
         # run preprocessing on specified input directory
         # store preprocessed data on specified output directory
-        dir_preprocessing(args.input, args.output)
+        dir_preprocessing(input_path=args.input,
+                          output_path=args.output)
 
 
 if __name__ == "__main__":
