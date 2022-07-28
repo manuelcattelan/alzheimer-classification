@@ -20,25 +20,25 @@ def export_runs_report(input,
         if tune:
             header = ["n_Run",
                       "Model parameters",
-                      "Accuracy mean",
-                      "Accuracy stdev",
-                      "Precision mean",
-                      "Precision stdev",
-                      "Recall mean",
-                      "Recall stdev",
-                      "Train time",
-                      "Test time",
-                      "Tune time"]
+                      "Accuracy mean (%)",
+                      "Accuracy stdev (%)",
+                      "Precision mean (%)",
+                      "Precision stdev (%)",
+                      "Recall mean (%)",
+                      "Recall stdev (%)",
+                      "Train time (s)",
+                      "Test time (s)",
+                      "Tune time (s)"]
         else:
             header = ["n_Run",
-                      "Accuracy mean",
-                      "Accuracy stdev",
-                      "Precision mean",
-                      "Precision stdev",
-                      "Recall mean",
-                      "Recall stdev",
-                      "Train time",
-                      "Test time"]
+                      "Accuracy mean (%)",
+                      "Accuracy stdev (%)",
+                      "Precision mean (%)",
+                      "Precision stdev (%)",
+                      "Recall mean (%)",
+                      "Recall stdev (%)",
+                      "Train time (s)",
+                      "Test time (s)"]
         writer = csv.writer(csvfile)
         writer.writerow(header)
         for run in runs_report:
