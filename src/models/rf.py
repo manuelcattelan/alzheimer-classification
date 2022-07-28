@@ -1,6 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
 from src.utils.parameters_tuning import rf_parameters
+from src.utils.parameters_tuning import rf_distribution
 from src.utils.classification import file_classification
 from src.utils.classification import dir_classification
 import argparse
@@ -61,6 +62,17 @@ def main():
     # If input is a directory -> output must end with no extension
     output_arg_extension = os.path.splitext(args.output)[1]
 
+    # Based on tune argument, specify tuning parameter dictionary:
+    # tune=grid -> use parameter grid
+    # tune=randomized -> use parameter distribution
+    match args.tune:
+        case "grid":
+            tune_parameters = rf_parameters
+        case "randomized":
+            tune_parameters = rf_distribution
+        case _:
+            tune_parameters = None
+
     # Check if provided input argument contains path to file
     if os.path.isfile(args.input):
         if output_arg_extension != ".csv":
@@ -82,7 +94,7 @@ def main():
                             normalize_df=False,
                             tune_mode=args.tune,
                             tune_iter=args.iter,
-                            tune_parameters=rf_parameters,
+                            tune_parameters=tune_parameters,
                             tune_metric=args.metric,
                             n_splits=args.splits,
                             n_jobs=args.jobs)
@@ -108,7 +120,7 @@ def main():
                            normalize_df=False,
                            tune_mode=args.tune,
                            tune_iter=args.iter,
-                           tune_parameters=rf_parameters,
+                           tune_parameters=tune_parameters,
                            tune_metric=args.metric,
                            n_splits=args.splits,
                            n_jobs=args.jobs)

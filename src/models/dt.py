@@ -62,6 +62,17 @@ def main():
     # If input is a directory -> output must end with no extension
     output_arg_extension = os.path.splitext(args.output)[1]
 
+    # Based on tune argument, specify tuning parameter dictionary:
+    # tune=grid -> use parameter grid
+    # tune=randomized -> use parameter distribution
+    match args.tune:
+        case "grid":
+            tune_parameters = dt_parameters
+        case "randomized":
+            tune_parameters = dt_distribution
+        case _:
+            tune_parameters = None
+
     # Check if provided input argument contains path to file
     if os.path.isfile(args.input):
         if output_arg_extension != ".csv":
@@ -75,11 +86,6 @@ def main():
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
                                      n_repeats=args.runs,
                                      random_state=0)
-        match args.tune:
-            case "grid":
-                tune_parameters = dt_parameters
-            case "randomized":
-                tune_parameters = dt_distribution
 
         file_classification(clf=clf,
                             cv=cv,
@@ -106,12 +112,6 @@ def main():
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
                                      n_repeats=args.runs,
                                      random_state=0)
-
-        match args.tune:
-            case "grid":
-                tune_parameters = dt_parameters
-            case "randomized":
-                tune_parameters = dt_distribution
 
         dir_classification(clf=clf,
                            cv=cv,
