@@ -7,7 +7,6 @@ from src.utils.reports import export_runs_report
 from src.utils.reports import export_classification_report
 from sklearn.metrics import confusion_matrix
 import pandas as pd
-import numpy as np
 import time
 
 
@@ -18,12 +17,12 @@ def train_classifier(classifier, X, y, train_index):
 
     # Train classifier and time training
     start = time.time()
-    trained_clf = classifier.fit(X_train, y_train)
+    trained_classifier = classifier.fit(X_train, y_train)
     stop = time.time()
 
     train_time = stop - start
 
-    return trained_clf, train_time
+    return trained_classifier, train_time
 
 
 def test_classifier(classifier, X, y, test_index):
@@ -41,10 +40,10 @@ def test_classifier(classifier, X, y, test_index):
     return y_test, y_pred, test_time
 
 
-def run_classification(classifier, cross_validator, df, splits):
+def run_classification(classifier, cross_validator, df, n_splits):
     # Lists for holding each split results
-    split_confusion_matrix_list = []
-    split_times_list = []
+    split_cm_list = []
+    split_time_list = []
     # Dictionary for holding each run results
     run_results_dict = {}
     # Separate dataframe into two subframes:
@@ -52,38 +51,30 @@ def run_classification(classifier, cross_validator, df, splits):
     # y contains only the label column
     X = df.iloc[:, 1:-1]
     y = df.iloc[:, -1]
-    # Unique namespace of possible labels from dataframe
-    labels_space = np.unique(y)
-
     # Initialize loop iterators
     split_iter = 1
     run_iter = 1
     # For each split/run from cross_validator split
     for train_index, test_index in cross_validator.split(X, y):
         # Train classifier on training subframe
-        trained_clf, train_time = train_classifier(classifier,
-                                                   X,
-                                                   y,
-                                                   train_index)
+        (trained_classifier,
+         train_time) = train_classifier(classifier, X, y, train_index)
         # Test classifier on testing subframe
-        true_labels, predicted_labels, test_time = test_classifier(classifier,
-                                                                   X,
-                                                                   y,
-                                                                   test_index)
+        (true_labels,
+         predicted_labels,
+         test_time) = test_classifier(trained_classifier, X, y, test_index)
         # Compute split results and append them in corresponding lists
-        split_confusion_matrix = confusion_matrix(true_labels,
-                                                  predicted_labels)
-        split_confusion_matrix_list.append(split_confusion_matrix)
-        split_times_list.append((train_time, test_time))
-        # If current run is over (all splits were evaluated)
-        if split_iter == splits:
-            # Store splits results inside current run results
-            run_results_dict[run_iter] = (split_confusion_matrix_list,
-                                          split_times_list)
-            # Reset split results lists
-            split_confusion_matrix_list = []
-            split_times_list = []
-            # Update loop iterators
+        split_cm = confusion_matrix(true_labels, predicted_labels)
+        split_cm_list.append(split_cm)
+        split_time_list.append((train_time, test_time))
+        # If current run is over (all splits were evaluated):
+        # store splits results of current run into current run results
+        # reset splits results lists
+        # update loop iterators
+        if split_iter == n_splits:
+            run_results_dict[run_iter] = (split_cm_list, split_time_list)
+            split_cm_list = []
+            split_time_list = []
             split_iter = 1
             run_iter = run_iter + 1
         else:
@@ -101,7 +92,8 @@ def file_classification(classifier,
                         tune_mode,
                         tune_iter,
                         tune_parameters,
-                        splits):
+                        splits,
+                        metric):
     # Read data from input path into dataframe
     df = pd.read_csv(input_path, sep=";")
     if normalize:
@@ -111,12 +103,12 @@ def file_classification(classifier,
         (classifier,
          classifier_best_parameters,
          tune_time) = tune_classifier(classifier,
-                                      cross_validator,
                                       df,
                                       jobs,
                                       tune_mode,
                                       tune_iter,
-                                      tune_parameters)
+                                      tune_parameters,
+                                      metric)
     else:
         classifier_best_parameters = classifier.get_params()
         tune_time = None
@@ -164,13 +156,14 @@ def dir_classification(classifier,
         for input_filepath, output_filepath in zip(input_filepath_list,
                                                    output_filepath_list):
             # run classification process on file
-            file_classification(classifier,
-                                cross_validator,
-                                input_filepath,
-                                output_filepath,
-                                normalize,
-                                jobs,
-                                tune_mode,
-                                tune_iter,
-                                tune_parameters,
-                                splits)
+            file_classification(classifier=classifier,
+                                cross_validator=cross_validator,
+                                input_path=input_filepath,
+                                output_path=output_filepath,
+                                normalize=normalize,
+                                jobs=jobs,
+                                tune_mode=tune_mode,
+                                tune_iter=tune_iter,
+                                tune_parameters=tune_parameters,
+                                splits=splits,
+                                metric=metric)
