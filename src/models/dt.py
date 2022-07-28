@@ -38,7 +38,7 @@ def main():
                         default=10)
     parser.add_argument("--metric",
                         choices=["accuracy", "precision", "recall"],
-                        help=("metric used to determine best performing task"),
+                        help="metric on which parameter tuning is based",
                         default="accuracy")
     parser.add_argument("--jobs",
                         type=int,
@@ -73,16 +73,17 @@ def main():
         decision_tree = DecisionTreeClassifier()
         cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
                                                   n_repeats=args.runs)
-        file_classification(decision_tree,
-                            cross_validator,
-                            args.input,
-                            args.output,
-                            False,
-                            args.jobs,
-                            args.tune,
-                            args.iter,
-                            dt_parameters,
-                            args.splits)
+        file_classification(classifier=decision_tree,
+                            cross_validator=cross_validator,
+                            input_path=args.input,
+                            output_path=args.output,
+                            normalize=False,
+                            jobs=args.jobs,
+                            tune_mode=args.tune,
+                            tune_iter=args.iter,
+                            tune_parameters=dt_parameters,
+                            splits=args.splits,
+                            metric=args.metric)
 
     # Check if provided input argument contains path to directory
     if os.path.isdir(args.input):
@@ -96,17 +97,17 @@ def main():
         decision_tree = DecisionTreeClassifier()
         cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
                                                   n_repeats=args.runs)
-        dir_classification(decision_tree,
-                           cross_validator,
-                           args.input,
-                           args.output,
-                           False,
-                           args.jobs,
-                           args.tune,
-                           args.iter,
-                           dt_parameters,
-                           args.splits,
-                           args.metric)
+        dir_classification(classifier=decision_tree,
+                           cross_validator=cross_validator,
+                           input_path=args.input,
+                           output_path=args.output,
+                           normalize=False,
+                           jobs=args.jobs,
+                           tune_mode=args.tune,
+                           tune_iter=args.iter,
+                           tune_parameters=dt_parameters,
+                           splits=args.splits,
+                           metric=args.metric)
 
 
 if __name__ == '__main__':

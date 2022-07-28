@@ -38,7 +38,7 @@ def main():
                         default=10)
     parser.add_argument("--metric",
                         choices=["accuracy", "precision", "recall"],
-                        help=("metric used to determine best performing task"),
+                        help="metric on which parameter tuning is based",
                         default="accuracy")
     parser.add_argument("--jobs",
                         type=int,
@@ -70,19 +70,20 @@ def main():
         # If everything is OK:
         # run classification on specified input file
         # store classification report on specified output file
-        support_vector = SVC()
+        support_vector_classifier = SVC()
         cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
                                                   n_repeats=args.runs)
-        file_classification(support_vector,
-                            cross_validator,
-                            args.input,
-                            args.output,
-                            True,
-                            args.jobs,
-                            args.tune,
-                            args.iter,
-                            svc_parameters,
-                            args.splits)
+        file_classification(classifier=support_vector_classifier,
+                            cross_validator=cross_validator,
+                            input_path=args.input,
+                            output_path=args.output,
+                            normalize=True,
+                            jobs=args.jobs,
+                            tune_mode=args.tune,
+                            tune_iter=args.iter,
+                            tune_parameters=svc_parameters,
+                            splits=args.splits,
+                            metric=args.metric)
 
     # Check if provided input argument contains path to directory
     if os.path.isdir(args.input):
@@ -93,20 +94,20 @@ def main():
         # If everything is OK:
         # run classification on specified input directory
         # store classification reports on specified output directory
-        support_vector = SVC()
+        support_vector_classifier = SVC()
         cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
                                                   n_repeats=args.runs)
-        dir_classification(support_vector,
-                           cross_validator,
-                           args.input,
-                           args.output,
-                           True,
-                           args.jobs,
-                           args.tune,
-                           args.iter,
-                           svc_parameters,
-                           args.splits,
-                           args.metric)
+        dir_classification(classifier=support_vector_classifier,
+                           cross_validator=cross_validator,
+                           input_path=args.input,
+                           output_path=args.output,
+                           normalize=True,
+                           jobs=args.jobs,
+                           tune_mode=args.tune,
+                           tune_iter=args.iter,
+                           tune_parameters=svc_parameters,
+                           splits=args.splits,
+                           metric=args.metric)
 
 
 if __name__ == '__main__':
