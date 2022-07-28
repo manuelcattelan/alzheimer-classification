@@ -10,7 +10,7 @@ def scan_input_dir(input_path,
     input_content = os.listdir(input_path)
 
     # For each content (file/subdir) inside input path
-    for content in input_content:
+    for content in sorted(input_content):
         # Build content absolute paths:
         # content_input_path holds the path to the content in the system
         # content_output_path holds the path to the results from the content
