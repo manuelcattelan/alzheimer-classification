@@ -70,20 +70,20 @@ def main():
         # If everything is OK:
         # run classification on specified input file
         # store classification report on specified output file
-        decision_tree = DecisionTreeClassifier()
-        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
-                                                  n_repeats=args.runs)
-        file_classification(classifier=decision_tree,
-                            cross_validator=cross_validator,
+        clf = DecisionTreeClassifier()
+        cv = RepeatedStratifiedKFold(n_splits=args.splits,
+                                     n_repeats=args.runs)
+        file_classification(clf=clf,
+                            cv=cv,
                             input_path=args.input,
                             output_path=args.output,
-                            normalize=False,
-                            jobs=args.jobs,
+                            normalize_df=False,
                             tune_mode=args.tune,
                             tune_iter=args.iter,
                             tune_parameters=dt_parameters,
-                            splits=args.splits,
-                            metric=args.metric)
+                            tune_metric=args.metric,
+                            n_splits=args.splits,
+                            n_jobs=args.jobs)
 
     # Check if provided input argument contains path to directory
     if os.path.isdir(args.input):
@@ -94,20 +94,20 @@ def main():
         # If everything is OK:
         # run classification on specified input directory
         # store classification reports on specified output directory
-        decision_tree = DecisionTreeClassifier()
-        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
-                                                  n_repeats=args.runs)
-        dir_classification(classifier=decision_tree,
-                           cross_validator=cross_validator,
+        clf = DecisionTreeClassifier()
+        cv = RepeatedStratifiedKFold(n_splits=args.splits,
+                                     n_repeats=args.runs)
+        dir_classification(clf=clf,
+                           cv=cv,
                            input_path=args.input,
                            output_path=args.output,
-                           normalize=False,
-                           jobs=args.jobs,
+                           normalize_df=False,
                            tune_mode=args.tune,
                            tune_iter=args.iter,
                            tune_parameters=dt_parameters,
-                           splits=args.splits,
-                           metric=args.metric)
+                           tune_metric=args.metric,
+                           n_splits=args.splits,
+                           n_jobs=args.jobs)
 
 
 if __name__ == '__main__':

@@ -70,20 +70,20 @@ def main():
         # If everything is OK:
         # run classification on specified input file
         # store classification report on specified output file
-        support_vector_classifier = SVC()
-        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
-                                                  n_repeats=args.runs)
-        file_classification(classifier=support_vector_classifier,
-                            cross_validator=cross_validator,
+        clf = SVC()
+        cv = RepeatedStratifiedKFold(n_splits=args.splits,
+                                     n_repeats=args.runs)
+        file_classification(clf=clf,
+                            cv=cv,
                             input_path=args.input,
                             output_path=args.output,
-                            normalize=True,
-                            jobs=args.jobs,
+                            normalize_df=True,
                             tune_mode=args.tune,
                             tune_iter=args.iter,
                             tune_parameters=svc_parameters,
-                            splits=args.splits,
-                            metric=args.metric)
+                            tune_metric=args.metric,
+                            n_splits=args.splits,
+                            n_jobs=args.jobs)
 
     # Check if provided input argument contains path to directory
     if os.path.isdir(args.input):
@@ -94,20 +94,20 @@ def main():
         # If everything is OK:
         # run classification on specified input directory
         # store classification reports on specified output directory
-        support_vector_classifier = SVC()
-        cross_validator = RepeatedStratifiedKFold(n_splits=args.splits,
-                                                  n_repeats=args.runs)
-        dir_classification(classifier=support_vector_classifier,
-                           cross_validator=cross_validator,
+        clf = SVC()
+        cv = RepeatedStratifiedKFold(n_splits=args.splits,
+                                     n_repeats=args.runs)
+        dir_classification(clf=clf,
+                           cv=cv,
                            input_path=args.input,
                            output_path=args.output,
-                           normalize=True,
-                           jobs=args.jobs,
+                           normalize_df=True,
                            tune_mode=args.tune,
                            tune_iter=args.iter,
                            tune_parameters=svc_parameters,
-                           splits=args.splits,
-                           metric=args.metric)
+                           tune_metric=args.metric,
+                           n_splits=args.splits,
+                           n_jobs=args.jobs)
 
 
 if __name__ == '__main__':
