@@ -24,7 +24,7 @@ def scan_input_dir(input_path,
                 and os.path.splitext(content_input_path)[1] == ".csv"):
             input_path_list[input_path].append(content_input_path)
             output_path_list[output_path].append(content_output_path)
-        # If content contains path to directory,
+        # If content contains path to visible directory,
         # recursively call this function to scan new directory content
         elif (os.path.isdir(content_input_path)
                 and not content_input_path.startswith(".")):
