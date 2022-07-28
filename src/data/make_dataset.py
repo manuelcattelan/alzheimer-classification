@@ -18,15 +18,7 @@ def main():
                         help=("path to file or directory of files where "
                               "preprocessed data will be stored"),
                         required=True)
-    parser.add_argument("--log",
-                        choices=logging._nameToLevel.keys(),
-                        help="logging level at which to display logging info",
-                        default="WARNING")
     args = parser.parse_args()
-
-    # Logging basic configuration
-    logging.basicConfig(level=args.log.upper())
-    logger = logging.getLogger(__name__)
 
     # Check if provided input argument is valid, meaning:
     # Input argument is an existing file, or
