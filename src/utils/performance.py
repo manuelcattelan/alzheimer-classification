@@ -13,21 +13,17 @@ def compute_runs_report(run_results_dict):
         # Lists holding classification times
         train_times = []
         test_times = []
-        for confusion_matrix, times in zip(run_results_dict[run][0],
-                                           run_results_dict[run][1]):
+        for split_cm, split_times in zip(run_results_dict[run][0],
+                                         run_results_dict[run][1]):
             # Ravel currently evaluated confusion matrix
-            tn, fp, fn, tp = confusion_matrix.ravel()
-            # With very small folds, there may be no positive class samples
-            if (tp + fp) != 0:
-                precisions.append((tp / (tp + fp) * 100))
-            else:
-                precisions.append(0)
+            tn, fp, fn, tp = split_cm.ravel()
             # Compute and append performance metrics to corresponding lists
+            precisions.append((tp / (tp + fp) * 100))
             accuracies.append((tp + tn) / (tn + fp + fn + tp) * 100)
             recalls.append((tp / (tp + fn) * 100))
             # Append classification times to corresponding lists
-            train_times.append(times[0])
-            test_times.append(times[1])
+            train_times.append(split_times[0])
+            test_times.append(split_times[1])
         # Compute mean and variance
         # for all metric arrays
         run_performance = ((np.mean(accuracies), np.var(accuracies)),
