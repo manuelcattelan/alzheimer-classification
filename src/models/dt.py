@@ -1,6 +1,5 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
-from src.utils.parameters_tuning import dt_parameters
 from src.utils.parameters_tuning import dt_distribution
 from src.utils.classification import file_classification
 from src.utils.classification import dir_classification
@@ -30,12 +29,11 @@ def main():
                         help="number of runs (n) for cross validation",
                         default=20)
     parser.add_argument("--tune",
-                        choices=["randomized", "grid"],
-                        help="algorithm used to tune model hyperparameters")
+                        help="tune model parameters using randomized search",
+                        action=argparse.BooleanOptionalAction)
     parser.add_argument("--iter",
                         type=int,
-                        help="number of iterations for randomized parameter "
-                             "tuning (ignored by grid search)",
+                        help="number of iterations for parameter tuning",
                         default=10)
     parser.add_argument("--metric",
                         choices=["accuracy", "precision", "recall"],
@@ -62,17 +60,6 @@ def main():
     # If input is a directory -> output must end with no extension
     output_arg_extension = os.path.splitext(args.output)[1]
 
-    # Based on tune argument, specify tuning parameter dictionary:
-    # tune=grid -> use parameter grid
-    # tune=randomized -> use parameter distribution
-    match args.tune:
-        case "grid":
-            tune_parameters = dt_parameters
-        case "randomized":
-            tune_parameters = dt_distribution
-        case _:
-            tune_parameters = None
-
     # Check if provided input argument contains path to file
     if os.path.isfile(args.input):
         if output_arg_extension != ".csv":
@@ -94,7 +81,7 @@ def main():
                             normalize_df=False,
                             tune_mode=args.tune,
                             tune_iter=args.iter,
-                            tune_parameters=tune_parameters,
+                            tune_parameters=dt_distribution,
                             tune_metric=args.metric,
                             n_splits=args.splits,
                             n_jobs=args.jobs)
@@ -120,7 +107,7 @@ def main():
                            normalize_df=False,
                            tune_mode=args.tune,
                            tune_iter=args.iter,
-                           tune_parameters=tune_parameters,
+                           tune_parameters=dt_distribution,
                            tune_metric=args.metric,
                            n_splits=args.splits,
                            n_jobs=args.jobs)
