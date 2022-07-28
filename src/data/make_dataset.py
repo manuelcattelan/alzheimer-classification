@@ -8,7 +8,7 @@ import os
 def main():
     # Set un parser to enable possible arguments from command line
     parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+            formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--input",
                         help=("path to file or directory of files where "
                               "data to preprocess is stored"),
