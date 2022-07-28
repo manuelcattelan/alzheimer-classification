@@ -98,7 +98,7 @@ def file_classification(clf,
     df = pd.read_csv(input_path, sep=";")
     if normalize_df:
         df = normalize_data(df_to_normalize=df)
-    # If tune_mode is specified, run parameter tuning
+    # If tune_mode is specified, run parameter tuning and get optimized clf
     if tune_mode:
         (clf,
          clf_best_params,
@@ -109,6 +109,7 @@ def file_classification(clf,
                                       tune_parameters=tune_parameters,
                                       tune_metric=tune_metric,
                                       n_jobs=n_jobs)
+    # If tune_mode is not specified, set clf_best_params to default params
     else:
         clf_best_params = clf.get_params()
         tune_time = None
@@ -117,7 +118,7 @@ def file_classification(clf,
                                           cv=cv,
                                           df=df,
                                           n_splits=n_splits)
-    # Compute classification report
+    # Compute run report and export to csv file
     runs_report = compute_runs_report(run_results_dict=run_results_dict)
     export_runs_report(input=input_path,
                        runs_report=runs_report,
@@ -125,6 +126,7 @@ def file_classification(clf,
                        tune_parameters=clf_best_params,
                        tune_time=tune_time,
                        output=output_path)
+    # Compute classification report and export to png file
     clf_report = compute_clf_report(runs_report=runs_report)
     export_clf_report(input=input_path,
                       clf_report=clf_report,
