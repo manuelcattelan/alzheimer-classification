@@ -1,6 +1,7 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
 from src.utils.parameters_tuning import dt_parameters
+from src.utils.parameters_tuning import dt_distribution
 from src.utils.classification import file_classification
 from src.utils.classification import dir_classification
 import argparse
@@ -70,9 +71,16 @@ def main():
         # If everything is OK:
         # run classification on specified input file
         # store classification report on specified output file
-        clf = DecisionTreeClassifier()
+        clf = DecisionTreeClassifier(random_state=0)
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                     n_repeats=args.runs)
+                                     n_repeats=args.runs,
+                                     random_state=0)
+        match args.tune:
+            case "grid":
+                tune_parameters = dt_parameters
+            case "randomized":
+                tune_parameters = dt_distribution
+
         file_classification(clf=clf,
                             cv=cv,
                             input_path=args.input,
@@ -80,7 +88,7 @@ def main():
                             normalize_df=False,
                             tune_mode=args.tune,
                             tune_iter=args.iter,
-                            tune_parameters=dt_parameters,
+                            tune_parameters=tune_parameters,
                             tune_metric=args.metric,
                             n_splits=args.splits,
                             n_jobs=args.jobs)
@@ -94,9 +102,17 @@ def main():
         # If everything is OK:
         # run classification on specified input directory
         # store classification reports on specified output directory
-        clf = DecisionTreeClassifier()
+        clf = DecisionTreeClassifier(random_state=0)
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                     n_repeats=args.runs)
+                                     n_repeats=args.runs,
+                                     random_state=0)
+
+        match args.tune:
+            case "grid":
+                tune_parameters = dt_parameters
+            case "randomized":
+                tune_parameters = dt_distribution
+
         dir_classification(clf=clf,
                            cv=cv,
                            input_path=args.input,
@@ -104,7 +120,7 @@ def main():
                            normalize_df=False,
                            tune_mode=args.tune,
                            tune_iter=args.iter,
-                           tune_parameters=dt_parameters,
+                           tune_parameters=tune_parameters,
                            tune_metric=args.metric,
                            n_splits=args.splits,
                            n_jobs=args.jobs)

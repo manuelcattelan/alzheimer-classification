@@ -70,9 +70,11 @@ def main():
         # If everything is OK:
         # run classification on specified input file
         # store classification report on specified output file
-        clf = RandomForestClassifier(n_jobs=args.jobs)
+        clf = RandomForestClassifier(n_jobs=args.jobs,
+                                     random_state=0)
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                     n_repeats=args.runs)
+                                     n_repeats=args.runs,
+                                     random_state=0)
         file_classification(clf=clf,
                             cv=cv,
                             input_path=args.input,
@@ -94,9 +96,11 @@ def main():
         # If everything is OK:
         # run classification on specified input directory
         # store classification reports on specified output directory
-        clf = RandomForestClassifier(n_jobs=args.jobs)
+        clf = RandomForestClassifier(n_jobs=args.jobs,
+                                     random_state=0)
         cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                     n_repeats=args.runs)
+                                     n_repeats=args.runs,
+                                     random_state=0)
         dir_classification(clf=clf,
                            cv=cv,
                            input_path=args.input,
