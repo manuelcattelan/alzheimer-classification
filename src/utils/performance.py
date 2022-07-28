@@ -39,7 +39,7 @@ def compute_runs_report(run_results_dict):
     return runs_report
 
 
-def compute_classification_report(runs_report):
+def compute_clf_report(runs_report):
     accuracy_mean_list = []
     accuracy_variance_list = []
     precision_mean_list = []

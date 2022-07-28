@@ -7,7 +7,7 @@ import os
 
 def export_runs_report(input,
                        runs_report,
-                       tune,
+                       tune_mode,
                        tune_parameters,
                        tune_time,
                        output):
@@ -17,7 +17,7 @@ def export_runs_report(input,
     output_with_csv_suffix = Path(output_with_no_suffix).with_suffix(".csv")
 
     with open(output_with_csv_suffix, 'w+', newline='') as csvfile:
-        if tune:
+        if tune_mode:
             header = ["n_Run",
                       "Model parameters",
                       "Accuracy mean (%)",
@@ -51,7 +51,7 @@ def export_runs_report(input,
             train_time = runs_report[run][1][0]
             test_time = runs_report[run][1][1]
 
-            if tune:
+            if tune_mode:
                 data = [run,
                         tune_parameters,
                         format(acc_mean, ".1f"),
@@ -60,9 +60,9 @@ def export_runs_report(input,
                         format(np.sqrt(prec_var), ".1f"),
                         format(rec_mean, ".1f"),
                         format(np.sqrt(rec_var), ".1f"),
-                        format(train_time, ".5f"),
-                        format(test_time, ".5f"),
-                        format(tune_time, ".3f")]
+                        format(train_time, ".4f"),
+                        format(test_time, ".4f"),
+                        format(tune_time, ".4f")]
             else:
                 data = [run,
                         format(acc_mean, ".1f"),
@@ -71,21 +71,21 @@ def export_runs_report(input,
                         format(np.sqrt(prec_var), ".1f"),
                         format(rec_mean, ".1f"),
                         format(np.sqrt(rec_var), ".1f"),
-                        format(train_time, ".5f"),
-                        format(test_time, ".5f")]
-                
+                        format(train_time, ".4f"),
+                        format(test_time, ".4f")]
+
             writer.writerow(data)
 
 
-def export_classification_report(input, classification_report, output):
+def export_clf_report(input, clf_report, output):
     metrics = ["Accuracy", "Precision", "Recall"]
 
-    accuracy_mean = classification_report[0][0]
-    accuracy_stdev = classification_report[0][1]
-    precision_mean = classification_report[1][0]
-    precision_stdev = classification_report[1][1]
-    recall_mean = classification_report[2][0]
-    recall_stdev = classification_report[2][1]
+    accuracy_mean = clf_report[0][0]
+    accuracy_stdev = clf_report[0][1]
+    precision_mean = clf_report[1][0]
+    precision_stdev = clf_report[1][1]
+    recall_mean = clf_report[2][0]
+    recall_stdev = clf_report[2][1]
 
     CTEs = [accuracy_mean, precision_mean, recall_mean]
     error = [accuracy_stdev, precision_stdev, recall_stdev]

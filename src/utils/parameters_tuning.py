@@ -28,13 +28,13 @@ svc_parameters = {"C": [0.1, 1, 10, 100, 1000],
                   "gamma": ["scale", "auto", 0.0001, 0.001, 0.1, 1, 10, 100]}
 
 
-def tune_classifier(classifier,
+def tune_classifier(clf,
                     df,
-                    jobs,
                     tune_mode,
                     tune_iter,
                     tune_parameters,
-                    tune_metric):
+                    tune_metric,
+                    n_jobs):
     # Separate dataframe into two subframes:
     # X contains all feature columns except for the label column
     # y contains only the label column
@@ -45,17 +45,17 @@ def tune_classifier(classifier,
     # to RandomizedSearch or GridSearch
     match tune_mode:
         case "randomized":
-            tuner = RandomizedSearchCV(estimator=classifier,
+            tuner = RandomizedSearchCV(estimator=clf,
                                        param_distributions=tune_parameters,
                                        n_iter=tune_iter,
                                        scoring=tune_metric,
-                                       n_jobs=jobs,
+                                       n_jobs=n_jobs,
                                        cv=StratifiedKFold(shuffle=True,))
         case "grid":
-            tuner = GridSearchCV(estimator=classifier,
+            tuner = GridSearchCV(estimator=clf,
                                  param_grid=tune_parameters,
                                  scoring=tune_metric,
-                                 n_jobs=jobs,
+                                 n_jobs=n_jobs,
                                  cv=StratifiedKFold(shuffle=True,))
     # Tune parameters on dataframe
     start = time.time()
