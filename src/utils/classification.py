@@ -97,7 +97,7 @@ def file_classification(clf,
     # Read data from input path into dataframe
     df = pd.read_csv(input_path, sep=";")
     if normalize_df:
-        df = normalize_data(df)
+        df = normalize_data(df_to_normalize=df)
     # If tune_mode is specified, run parameter tuning
     if tune_mode:
         (clf,
@@ -118,14 +118,14 @@ def file_classification(clf,
                                           df=df,
                                           n_splits=n_splits)
     # Compute classification report
-    runs_report = compute_runs_report(run_results_dict)
+    runs_report = compute_runs_report(run_results_dict=run_results_dict)
     export_runs_report(input=input_path,
                        runs_report=runs_report,
                        tune_mode=tune_mode,
                        tune_parameters=clf_best_params,
                        tune_time=tune_time,
                        output=output_path)
-    clf_report = compute_clf_report(runs_report)
+    clf_report = compute_clf_report(runs_report=runs_report)
     export_clf_report(input=input_path,
                       clf_report=clf_report,
                       output=output_path)
@@ -145,7 +145,8 @@ def dir_classification(clf,
     # Recursively scan input path in order to:
     # build a list of all input paths to read
     # build a list of all corresponding output paths to write
-    input_path_list, output_path_list = scan_input_dir(input_path, output_path)
+    input_path_list, output_path_list = scan_input_dir(input_path=input_path,
+                                                       output_path=output_path)
     # For each directory path found while traversing input path
     for input_dirpath, output_dirpath in zip(sorted(input_path_list),
                                              sorted(output_path_list)):
