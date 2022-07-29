@@ -8,7 +8,8 @@ import os
 def strip_dataframe(df_to_strip):
     df_stripped = df_to_strip.copy()
 
-    # For each feature in features, strip feature
+    # For each alphabetic feature in feature list,
+    # remove both leading and trailing whitespaces
     for feature in ["Sex", "Work", "Label"]:
         df_stripped[feature] = df_to_strip[feature].str.strip()
 
