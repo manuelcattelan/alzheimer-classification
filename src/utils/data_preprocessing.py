@@ -1,4 +1,4 @@
-from src.utils.scan_input import scan_input_dir
+from src.utils.path import build_path
 from sklearn.preprocessing import MinMaxScaler
 from scipy import stats
 from pathlib import Path
@@ -110,8 +110,7 @@ def dir_preprocessing(input_path, output_path):
     # Recursively scan input path in order to:
     # build a list of all input paths to read
     # build a list of all corresponding output paths to write
-    input_path_list, output_path_list = scan_input_dir(input_path=input_path,
-                                                       output_path=output_path)
+    input_path_list, output_path_list = build_path(input_path, output_path)
     # For each directory path found while traversing input path
     for input_dirpath, output_dirpath in zip(sorted(input_path_list),
                                              sorted(output_path_list)):
