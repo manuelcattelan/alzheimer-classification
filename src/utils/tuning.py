@@ -60,6 +60,7 @@ def tune_clf_params(
             scoring=tune_metric,
             n_jobs=n_jobs,
             cv=StratifiedKFold(
+                n_splits=10,
                 shuffle=True,
                 random_state=0
                 ),
