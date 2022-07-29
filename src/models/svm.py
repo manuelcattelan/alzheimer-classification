@@ -105,10 +105,10 @@ def main():
                 n_repeats=args.repeats,
                 random_state=0
                 )
-        # if args.tune is defined, tune hyperparameters
-        # before running classification
         clf_best_params = clf.get_params()
         tune_time = None
+        # if args.tune is defined, tune hyperparameters
+        # before running classification
         if args.tune is not None:
             clf, clf_best_params, tune_time = tune_clf_params(
                     clf,
@@ -157,9 +157,10 @@ def main():
                         n_repeats=args.repeats,
                         random_state=0
                         )
-
                 clf_best_params = clf.get_params()
                 tune_time = None
+                # if args.tune is defined, tune hyperparameters
+                # before running classification
                 if args.tune is not None:
                     clf, clf_best_params, tune_time = tune_clf_params(
                             clf,
