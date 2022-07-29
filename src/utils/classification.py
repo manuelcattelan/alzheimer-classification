@@ -76,7 +76,9 @@ def run_clf(clf, cv, df, n_splits):
         # If current run is over (total_split_per_run splits were evaluated):
         if split_iter == n_splits:
             # store splits results of current run inside classification results
-            clf_results[run_iter] = (split_performance_list, split_runtime_list)
+            clf_results[run_iter] = (
+                    split_performance_list, split_runtime_list
+                    )
             # clear splits results
             split_performance_list = []
             split_runtime_list = []
