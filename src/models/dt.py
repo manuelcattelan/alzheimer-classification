@@ -114,7 +114,8 @@ def main():
                     args.metric,
                     args.jobs
                     )
-        clf_results = run_clf(clf, cv, df, args.splits, args.repeats)
+        raw_results = run_clf(clf, cv, df, args.splits)
+        clf_results = compute_clf_results(raw_results)
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -157,11 +158,8 @@ def main():
                             args.metric,
                             args.jobs
                             )
-                raw_results = run_clf(
-                        clf, cv, df, args.splits, args.repeats
-                        )
-                run_results = compute_run_results(raw_results)
-                clf_results = compute_clf_results(run_results)
+                raw_results = run_clf(clf, cv, df, args.splits)
+                clf_results = compute_clf_results(raw_results)
 
 
 if __name__ == "__main__":
