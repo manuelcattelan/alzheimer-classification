@@ -40,23 +40,29 @@ def export_clf_results(clf_results, clf_best_params, tune_time, output_path):
     output_with_no_suffix = Path(output_path).with_suffix("")
     output_with_csv_suffix = Path(output_with_no_suffix).with_suffix(".csv")
 
+    # Open output file in write mode or create it if it does not exist
     with open(output_with_csv_suffix, "w+", newline="") as csvfile:
         writer = csv.writer(csvfile)
+        # Define header row
         header = [
                 "run_no",
                 "parameters",
-                "acc_mean[%]",
-                "acc_stdev[%]",
-                "prec_mean[%]",
-                "prec_stdev[%]",
-                "rec_mean[%]",
-                "rec_stdev[%]",
-                "train_time[s]",
-                "test_time[s]",
-                "tune_time[s]"
+                "splits_accuracy_mean (%)",
+                "splits_accuracy_stdev (%)",
+                "splits_precision_mean (%)",
+                "splits_precision_stdev (%)",
+                "splits_recall_mean (%)",
+                "splits_recall_stdev (%)",
+                "splits_train_time (s)",
+                "splits_test_time (s)",
+                "splits_tune_time (s)"
                 ]
+        # Write header row
         writer.writerow(header)
+
+        # For each run result in clf_results
         for run_no in clf_results:
+            # Define data row
             data = [
                     run_no,
                     clf_best_params if tune_time is not None else "default",
@@ -70,4 +76,56 @@ def export_clf_results(clf_results, clf_best_params, tune_time, output_path):
                     "{:.4f}".format(clf_results[run_no][2][1]),
                     "{:.4f}".format(tune_time) if tune_time is not None else 0,
                     ]
+            # Write data row
             writer.writerow(data)
+
+        # Compute average classification results from row results
+        runs_accuracy_mean = sum(
+                means[0][0]
+                for means in clf_results.values()
+                ) / float(len(clf_results))
+        runs_accuracy_stdev = np.sqrt(
+                sum(vars[1][0]
+                    for vars in clf_results.values()
+                    ) / float(len(clf_results))
+                )
+        runs_precision_mean = sum(
+                means[0][1]
+                for means in clf_results.values()
+                ) / float(len(clf_results))
+        runs_precision_stdev = np.sqrt(
+                sum(vars[1][1]
+                    for vars in clf_results.values()
+                    ) / float(len(clf_results))
+                )
+        runs_recall_mean = sum(
+                means[0][2]
+                for means in clf_results.values()
+                ) / float(len(clf_results))
+        runs_recall_stdev = np.sqrt(
+                sum(vars[1][2]
+                    for vars in clf_results.values()
+                    ) / float(len(clf_results))
+                )
+        total_train_time = sum(
+                time[2][0] for time in clf_results.values()
+                )
+        total_test_time = sum(
+                time[2][1] for time in clf_results.values()
+                )
+        # Define summary row
+        summary = [
+                "SUMMARY",
+                clf_best_params if tune_time is not None else "default",
+                runs_accuracy_mean,
+                runs_accuracy_stdev,
+                runs_precision_mean,
+                runs_precision_stdev,
+                runs_recall_mean,
+                runs_recall_stdev,
+                total_train_time,
+                total_test_time,
+                clf_best_params if tune_time is not None else 0,
+                ]
+        # Write summary row
+        writer.writerow(summary)
