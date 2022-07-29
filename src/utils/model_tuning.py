@@ -9,20 +9,20 @@ import time
 DT_PARAM_DISTRIBUTION = {
         "criterion": ["gini", "entropy", "log_loss"],
         "splitter": ["best", "random"],
-        "max_depth": randint(low=1, high=20),
-        "min_samples_split": randint(low=2, high=50),
-        "min_samples_leaf": randint(low=1, high=50),
+        "max_depth": randint(low=1, high=10),
+        "min_samples_split": randint(low=2, high=40),
+        "min_samples_leaf": randint(low=1, high=20),
         "max_features": randint(low=1, high=100),
         "min_impurity_decrease": uniform(0.1, 1)
         }
 
 
 RF_PARAM_DISTRIBUTION = {
-        "n_estimators": randint(10, 500),
+        "n_estimators": randint(10, 300),
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": randint(low=1, high=20),
-        "min_samples_split": randint(low=2, high=50),
-        "min_samples_leaf": randint(low=1, high=50),
+        "max_depth": randint(low=1, high=10),
+        "min_samples_split": randint(low=2, high=40),
+        "min_samples_leaf": randint(low=1, high=20),
         "max_features": randint(low=1, high=100),
         "min_impurity_decrease": uniform(0.1, 1),
         "bootstrap": [True, False]
@@ -41,10 +41,9 @@ SVC_PARAM_DISTRIBUTION = {
 def tune_model(
         clf,
         df,
-        tune_mode,
         tune_parameters,
-        tune_metric,
         tune_iterations,
+        tune_metric,
         n_jobs
         ):
     # Divide dataframe into two subframes:
@@ -55,11 +54,11 @@ def tune_model(
 
     # Initialize RandomizedSearch tuner
     tuner = RandomizedSearchCV(
-            clf,
-            tune_parameters,
-            tune_iterations,
-            tune_metric,
-            n_jobs,
+            estimator=clf,
+            param_distributions=tune_parameters,
+            n_iter=tune_iterations,
+            scoring=tune_metric,
+            n_jobs=n_jobs,
             cv=StratifiedKFold(
                 shuffle=True,
                 random_state=0
@@ -72,6 +71,7 @@ def tune_model(
     tuner.fit(X, y)
     stop = time.time()
 
+    print(tuner.best_params_)
     tune_time = stop - start
 
     return tuner.best_estimator_, tuner.best_params_, tune_time
