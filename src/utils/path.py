@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 
+
 def build_path(
         root_input_path,
         root_output_path,
@@ -16,7 +17,7 @@ def build_path(
         # content_input_path holds the absolute path to the content
         # in the filesystem.
         # content_output_path holds the absolute path to the file in which
-        # results (preprocessed data/classification results) obtained from 
+        # results (preprocessed data/classification results) obtained from
         # the content will be stored.
         content_input_path = os.path.join(root_input_path, content_path)
         content_output_path = os.path.join(root_output_path, content_path)
