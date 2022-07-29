@@ -67,9 +67,9 @@ def run_clf(clf, cv, df, n_splits):
         # Append results to corresponding lists
         split_performance_list.append(
                 (
-                    accuracy_score(true_labels, pred_labels),
-                    precision_score(true_labels, pred_labels),
-                    recall_score(true_labels, pred_labels)
+                    accuracy_score(true_labels, pred_labels, zero_division=0),
+                    precision_score(true_labels, pred_labels, zero_division=0),
+                    recall_score(true_labels, pred_labels, zero_division=0)
                     )
                 )
         split_runtime_list.append((train_time, test_time))
