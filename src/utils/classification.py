@@ -1,4 +1,6 @@
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 import time
 
 
@@ -36,9 +38,9 @@ def test_clf(clf, X, y, test_index):
     return y_test, y_pred, test_time
 
 
-def run_clf(clf, cv, df, n_splits, n_runs):
+def run_clf(clf, cv, df, n_splits):
     # Lists that hold each split results
-    split_cm_list = []
+    split_performance_list = []
     split_runtime_list = []
     # Dictionary that holds split results for each run:
     # [key] = n_run
@@ -62,17 +64,21 @@ def run_clf(clf, cv, df, n_splits, n_runs):
         clf, train_time = train_clf(clf, X, y, train_index)
         # Test classifier on test_index
         true_labels, pred_labels, test_time = test_clf(clf, X, y, test_index)
-        # Compute confusion matrix on predictions
-        split_cm = confusion_matrix(true_labels, pred_labels)
         # Append results to corresponding lists
-        split_cm_list.append(split_cm)
+        split_performance_list.append(
+                (
+                    accuracy_score(true_labels, pred_labels),
+                    precision_score(true_labels, pred_labels),
+                    recall_score(true_labels, pred_labels)
+                    )
+                )
         split_runtime_list.append((train_time, test_time))
         # If current run is over (total_split_per_run splits were evaluated):
         if split_iter == n_splits:
             # store splits results of current run inside classification results
-            clf_results[run_iter] = (split_cm_list, split_runtime_list)
+            clf_results[run_iter] = (split_performance_list, split_runtime_list)
             # clear splits results
-            split_cm_list = []
+            split_performance_list = []
             split_runtime_list = []
             # update loop iterators
             split_iter = 1
