@@ -52,7 +52,7 @@ def run_clf(clf, cv, df, n_splits, n_runs):
     y = df.iloc[:, -1]
 
     # Initialize loop variables
-    split_iter =  1
+    split_iter = 1
     run_iter = 1
     # total_split_per_run = n_splits
     # total_split = n_splits * n_runs

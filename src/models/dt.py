@@ -1,9 +1,9 @@
+from src.utils.path import build_path
+from src.utils.tuning import DT_PARAM_DISTRIBUTION
+from src.utils.tuning import tune_clf_params
+from src.utils.classification import run_clf
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
-from src.utils.path import build_path
-from src.utils.model_tuning import DT_PARAM_DISTRIBUTION
-from src.utils.model_tuning import tune_model
-from src.utils.data_classification import classify_dataframe
 import pandas as pd
 import argparse
 import errno
@@ -96,11 +96,15 @@ def main():
         # eport classification results
         df = pd.read_csv(args.input, sep=";")
         clf = DecisionTreeClassifier(random_state=0)
-        cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                     n_repeats=args.repeats,
-                                     random_state=0)
+        cv = RepeatedStratifiedKFold(
+                n_splits=args.splits,
+                n_repeats=args.repeats,
+                random_state=0
+                )
+        # if args.tune is defined, tune hyperparameters
+        # before running classification
         if args.tune is not None:
-            clf, clf_best_params, tune_time = tune_model(
+            clf, clf_best_params, tune_time = tune_clf_params(
                     clf,
                     df,
                     DT_PARAM_DISTRIBUTION,
@@ -108,10 +112,7 @@ def main():
                     args.metric,
                     args.jobs
                     )
-        # Run classification on dataframe
-        clf_results = classify_dataframe(
-                clf, cv, df, args.splits, args.repeats
-                )
+        clf_results = run_clf(clf, cv, df, args.splits, args.repeats)
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -140,11 +141,13 @@ def main():
                 # eport classification results
                 df = pd.read_csv(input_filepath, sep=";")
                 clf = DecisionTreeClassifier(random_state=0)
-                cv = RepeatedStratifiedKFold(n_splits=args.splits,
-                                             n_repeats=args.repeats,
-                                             random_state=0)
+                cv = RepeatedStratifiedKFold(
+                        n_splits=args.splits,
+                        n_repeats=args.repeats,
+                        random_state=0
+                        )
                 if args.tune is not None:
-                    clf, clf_best_params, tune_time = tune_model(
+                    clf, clf_best_params, tune_time = tune_clf_params(
                             clf,
                             df,
                             DT_PARAM_DISTRIBUTION,
@@ -153,9 +156,7 @@ def main():
                             args.jobs
                             )
                 # Run classification on dataframe
-                clf_results = classify_dataframe(
-                        clf, cv, df, args.splits, args.repeats
-                        )
+                clf_results = run_clf(clf, cv, df, args.splits, args.repeats)
 
 
 if __name__ == "__main__":
