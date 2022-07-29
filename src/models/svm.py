@@ -98,7 +98,7 @@ def main():
         # run classification on data
         # eport classification results
         df = pd.read_csv(args.input, sep=";")
-        df = normalize_dataframe(df) 
+        df = normalize_dataframe(df)
         clf = SVC(random_state=0)
         cv = RepeatedStratifiedKFold(
                 n_splits=args.splits,
@@ -150,7 +150,7 @@ def main():
                 # run classification on data
                 # eport classification results
                 df = pd.read_csv(input_filepath, sep=";")
-                df = normalize_dataframe(df) 
+                df = normalize_dataframe(df)
                 clf = SVC(random_state=0)
                 cv = RepeatedStratifiedKFold(
                         n_splits=args.splits,
