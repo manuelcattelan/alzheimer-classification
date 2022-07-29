@@ -38,7 +38,7 @@ SVC_PARAM_DISTRIBUTION = {
         }
 
 
-def tune_model(
+def tune_clf_params(
         clf,
         df,
         tune_parameters,

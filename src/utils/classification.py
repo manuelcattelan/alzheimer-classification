@@ -36,7 +36,7 @@ def test_clf(clf, X, y, test_index):
     return y_test, y_pred, test_time
 
 
-def classify_dataframe(clf, cv, df, n_splits, n_runs):
+def run_clf(clf, cv, df, n_splits, n_runs):
     # Lists that hold each split results
     split_cm_list = []
     split_time_list = []
@@ -54,8 +54,8 @@ def classify_dataframe(clf, cv, df, n_splits, n_runs):
     # Initialize loop variables
     split_iter =  1
     run_iter = 1
-    total_split_per_run = n_splits
-    total_split = n_splits * n_runs
+    # total_split_per_run = n_splits
+    # total_split = n_splits * n_runs
     # For each split (total_split):
     for train_index, test_index in cv.split(X, y):
         # Train classifier on train_index
@@ -68,7 +68,7 @@ def classify_dataframe(clf, cv, df, n_splits, n_runs):
         split_cm_list.append(split_cm)
         split_time_list.append((train_time, test_time))
         # If current run is over (total_split_per_run splits were evaluated):
-        if split_iter == total_split_per_run:
+        if split_iter == n_splits:
             # store splits results of current run inside classification results
             clf_results[run_iter] = (split_cm_list, split_time_list)
             # clear splits results
