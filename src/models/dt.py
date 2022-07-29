@@ -1,9 +1,11 @@
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import RepeatedStratifiedKFold
 from src.utils.path import build_path
 from src.utils.tuning import DT_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import RepeatedStratifiedKFold
+from src.utils.performance import compute_run_results
+from src.utils.performance import compute_clf_results
 import pandas as pd
 import argparse
 import errno
@@ -155,8 +157,11 @@ def main():
                             args.metric,
                             args.jobs
                             )
-                # Run classification on dataframe
-                clf_results = run_clf(clf, cv, df, args.splits, args.repeats)
+                raw_results = run_clf(
+                        clf, cv, df, args.splits, args.repeats
+                        )
+                run_results = compute_run_results(raw_results)
+                clf_results = compute_clf_results(run_results)
 
 
 if __name__ == "__main__":

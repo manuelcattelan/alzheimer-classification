@@ -71,7 +71,6 @@ def tune_clf_params(
     tuner.fit(X, y)
     stop = time.time()
 
-    print(tuner.best_params_)
     tune_time = stop - start
 
     return tuner.best_estimator_, tuner.best_params_, tune_time

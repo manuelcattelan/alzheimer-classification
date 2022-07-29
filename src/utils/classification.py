@@ -39,7 +39,7 @@ def test_clf(clf, X, y, test_index):
 def run_clf(clf, cv, df, n_splits, n_runs):
     # Lists that hold each split results
     split_cm_list = []
-    split_time_list = []
+    split_runtime_list = []
     # Dictionary that holds split results for each run:
     # [key] = n_run
     # [value] = (split_cm_list, split_time_list)
@@ -66,14 +66,14 @@ def run_clf(clf, cv, df, n_splits, n_runs):
         split_cm = confusion_matrix(true_labels, pred_labels)
         # Append results to corresponding lists
         split_cm_list.append(split_cm)
-        split_time_list.append((train_time, test_time))
+        split_runtime_list.append((train_time, test_time))
         # If current run is over (total_split_per_run splits were evaluated):
         if split_iter == n_splits:
             # store splits results of current run inside classification results
-            clf_results[run_iter] = (split_cm_list, split_time_list)
+            clf_results[run_iter] = (split_cm_list, split_runtime_list)
             # clear splits results
             split_cm_list = []
-            split_time_list = []
+            split_runtime_list = []
             # update loop iterators
             split_iter = 1
             run_iter = run_iter + 1

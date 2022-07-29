@@ -1,6 +1,6 @@
 from src.utils.path import build_path
-from src.utils.data_preprocessing import preprocess_dataframe
-from src.utils.data_preprocessing import export_dataframe
+from src.utils.preprocessing import preprocess_dataframe
+from src.utils.preprocessing import export_dataframe
 import pandas as pd
 import argparse
 import errno
