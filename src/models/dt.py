@@ -4,8 +4,8 @@ from src.utils.path import build_path
 from src.utils.tuning import DT_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
-from src.utils.performance import compute_run_results
 from src.utils.performance import compute_clf_results
+from src.utils.performance import export_clf_results
 import pandas as pd
 import argparse
 import errno
@@ -105,6 +105,8 @@ def main():
                 )
         # if args.tune is defined, tune hyperparameters
         # before running classification
+        clf_best_params = clf.get_params()
+        tune_time = None
         if args.tune is not None:
             clf, clf_best_params, tune_time = tune_clf_params(
                     clf,
@@ -116,6 +118,9 @@ def main():
                     )
         raw_results = run_clf(clf, cv, df, args.splits)
         clf_results = compute_clf_results(raw_results)
+        export_clf_results(
+                clf_results, clf_best_params, tune_time, args.output
+                )
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -149,6 +154,9 @@ def main():
                         n_repeats=args.repeats,
                         random_state=0
                         )
+
+                clf_best_params = clf.get_params()
+                tune_time = None
                 if args.tune is not None:
                     clf, clf_best_params, tune_time = tune_clf_params(
                             clf,
@@ -160,6 +168,12 @@ def main():
                             )
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
+                export_clf_results(
+                        clf_results,
+                        clf_best_params,
+                        tune_time,
+                        output_filepath
+                        )
 
 
 if __name__ == "__main__":
