@@ -169,7 +169,7 @@ def main():
                             )
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
-                export_clf_results(clf_results, output_filepath)
+                export_clf_report(clf_results, output_filepath)
                 export_clf_summary(clf_results, output_filepath)
 
 
