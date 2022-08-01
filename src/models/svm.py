@@ -6,7 +6,8 @@ from src.utils.tuning import SVC_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
-from src.utils.performance import export_clf_results
+from src.utils.performance import export_clf_report
+from src.utils.performance import export_clf_summary
 import pandas as pd
 import argparse
 import errno
@@ -120,9 +121,8 @@ def main():
                     )
         raw_results = run_clf(clf, cv, df, args.splits)
         clf_results = compute_clf_results(raw_results)
-        export_clf_results(
-                clf_results, clf_best_params, tune_time, args.output
-                )
+        export_clf_report(clf_results, args.output)
+        export_clf_summary(clf_results, args.output)
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -172,12 +172,8 @@ def main():
                             )
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
-                export_clf_results(
-                        clf_results,
-                        clf_best_params,
-                        tune_time,
-                        output_filepath
-                        )
+                export_clf_report(clf_results, output_filepath)
+                export_clf_summary(clf_results, output_filepath)
 
 
 if __name__ == "__main__":
