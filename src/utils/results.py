@@ -6,7 +6,9 @@ import os
 
 
 def export_clf_report(clf_results, input_path, output_path):
+    # Create output directory for results
     Path(output_path).mkdir(parents=True, exist_ok=True)
+    # Build output path with csv extension
     output_basename = os.path.basename(input_path)
     output_no_suffix = Path(output_basename).with_suffix("")
     output_no_suffix = str(output_no_suffix) + "_report"
@@ -124,7 +126,9 @@ def export_clf_summary(clf_results, input_path, output_path):
     ax.set_ylabel("Score [%]")
     ax.set_yticks(y_pos)
 
+    # Create output directory for results
     Path(output_path).mkdir(parents=True, exist_ok=True)
+    # Build output path with png extension
     output_basename = os.path.basename(input_path)
     output_no_suffix = Path(output_basename).with_suffix("")
     output_no_suffix = str(output_no_suffix) + "_summary"
@@ -138,7 +142,9 @@ def export_clf_summary(clf_results, input_path, output_path):
 
 
 def export_clf_tuning(tuning_results, input_path, output_path):
+    # Create output directory for results
     Path(output_path).mkdir(parents=True, exist_ok=True)
+    # Build output path with csv extension
     output_basename = os.path.basename(input_path)
     output_no_suffix = Path(output_basename).with_suffix("")
     output_no_suffix = str(output_no_suffix) + "_tuning"
