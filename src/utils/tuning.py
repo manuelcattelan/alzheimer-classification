@@ -66,12 +66,7 @@ def tune_clf_params(
             )
 
     # Tune provided parameters on dataframe
-    start = time.time()
     tuner.fit(X, y)
-    stop = time.time()
-
-    tune_time = stop - start
-
     # Build dataframe containing tuning results
     tuner_results = pd.DataFrame(tuner.cv_results_)[
             [
