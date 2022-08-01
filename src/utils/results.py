@@ -5,18 +5,16 @@ import csv
 import os
 
 
-def export_clf_report(clf_results, output_path):
-    # Get directory name from output path
-    output_dir = Path(os.path.dirname(output_path))
-    # Create output directory if it does not exist
-    output_dir.mkdir(parents=True, exist_ok=True)
-    # Add csv extension to output path
-    output_with_no_suffix = Path(output_path).with_suffix("")
-    output_with_no_suffix = str(output_with_no_suffix) + "_report"
-    output_with_csv_suffix = Path(output_with_no_suffix).with_suffix(".csv")
+def export_clf_report(clf_results, input_path, output_path):
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+    output_basename = os.path.basename(input_path)
+    output_no_suffix = Path(output_basename).with_suffix("")
+    output_no_suffix = str(output_no_suffix) + "_report"
+    output_with_suffix = Path(output_no_suffix).with_suffix(".csv")
+    output_full_path = output_path / output_with_suffix
 
     # Open output file in write mode or create it if it does not exist
-    with open(output_with_csv_suffix, "w+", newline="") as csvfile:
+    with open(output_full_path, "w+", newline="") as csvfile:
         writer = csv.writer(csvfile)
         # Define header row
         header = [
@@ -54,7 +52,7 @@ def export_clf_report(clf_results, output_path):
             writer.writerow(data)
 
 
-def export_clf_summary(clf_results, output_path):
+def export_clf_summary(clf_results, input_path, output_path):
     # Compute averaged results for classification
     runs_accuracy_mean = sum(
             means[0][0]
@@ -126,29 +124,25 @@ def export_clf_summary(clf_results, output_path):
     ax.set_ylabel("Score [%]")
     ax.set_yticks(y_pos)
 
-    # Extract dirname from output path and
-    # create directory if it does not exist
-    output_dirname = Path(os.path.dirname(output_path))
-    output_dirname.mkdir(parents=True, exist_ok=True)
-    # Add png extension to output path
-    output_with_no_suffix = Path(output_path).with_suffix("")
-    output_with_no_suffix = str(output_with_no_suffix) + "_summary"
-    output_with_png_suffix = Path(output_with_no_suffix).with_suffix(".png")
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+    output_basename = os.path.basename(input_path)
+    output_no_suffix = Path(output_basename).with_suffix("")
+    output_no_suffix = str(output_no_suffix) + "_summary"
+    output_with_suffix = Path(output_no_suffix).with_suffix(".png")
+    output_full_path = output_path / output_with_suffix
 
     # Export and close plot
     plt.tight_layout()
-    plt.savefig(output_with_png_suffix, bbox_inches="tight", dpi=400)
+    plt.savefig(output_full_path, bbox_inches="tight", dpi=400)
     plt.close()
 
 
-def export_clf_tuning(tuning_results, output_path):
-    # Extract dirname from output path and
-    # create directory if it does not exist
-    output_dirname = Path(os.path.dirname(output_path))
-    output_dirname.mkdir(parents=True, exist_ok=True)
-    # Add csv extension to output path
-    output_with_no_suffix = Path(output_path).with_suffix("")
-    output_with_no_suffix = str(output_with_no_suffix) + "_tuning"
-    output_with_csv_suffix = Path(output_with_no_suffix).with_suffix(".csv")
+def export_clf_tuning(tuning_results, input_path, output_path):
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+    output_basename = os.path.basename(input_path)
+    output_no_suffix = Path(output_basename).with_suffix("")
+    output_no_suffix = str(output_no_suffix) + "_tuning"
+    output_with_suffix = Path(output_no_suffix).with_suffix(".csv")
+    output_full_path = output_path / output_with_suffix
 
-    tuning_results.to_csv(output_with_csv_suffix)
+    tuning_results.to_csv(output_full_path)
