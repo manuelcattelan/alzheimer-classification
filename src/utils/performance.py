@@ -15,8 +15,8 @@ def compute_clf_results(raw_results):
                 for metric in zip(*raw_results[run_no][0])
                 ]
         # Compute variance over all splits for each performance metric
-        run_performance_var = [
-                np.var(metric)
+        run_performance_std = [
+                np.std(metric)
                 for metric in zip(*raw_results[run_no][0])
                 ]
         # Compute total runtime from all splits
@@ -26,7 +26,7 @@ def compute_clf_results(raw_results):
         # Add results to [run_no] in dictionary
         clf_results[run_no] = (
                 run_performance_mean,
-                run_performance_var,
+                run_performance_std,
                 run_runtime
                 )
     return clf_results
@@ -63,15 +63,15 @@ def export_clf_report(clf_results, output_path):
                     run_no,
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][0] * 100,
-                        np.sqrt(clf_results[run_no][1][0]) * 100
+                        clf_results[run_no][1][0] * 100
                         ),
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][1] * 100,
-                        np.sqrt(clf_results[run_no][1][1]) * 100
+                        clf_results[run_no][1][1] * 100
                         ),
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][2] * 100,
-                        np.sqrt(clf_results[run_no][1][2]) * 100
+                        clf_results[run_no][1][2] * 100
                         ),
                     "{:.4f}".format(clf_results[run_no][2][0]),
                     "{:.4f}".format(clf_results[run_no][2][1]),
@@ -87,8 +87,8 @@ def export_clf_summary(clf_results, output_path):
             for means in clf_results.values()
             ) / float(len(clf_results)) * 100
     runs_accuracy_stdev = np.sqrt(
-            sum(vars[1][0]
-                for vars in clf_results.values()
+            sum(stds[1][0] ** 2
+                for stds in clf_results.values()
                 ) / float(len(clf_results))
             ) * 100
     runs_precision_mean = sum(
@@ -96,8 +96,8 @@ def export_clf_summary(clf_results, output_path):
             for means in clf_results.values()
             ) / float(len(clf_results)) * 100
     runs_precision_stdev = np.sqrt(
-            sum(vars[1][1]
-                for vars in clf_results.values()
+            sum(stds[1][1] ** 2
+                for stds in clf_results.values()
                 ) / float(len(clf_results))
             ) * 100
     runs_recall_mean = sum(
@@ -105,8 +105,8 @@ def export_clf_summary(clf_results, output_path):
             for means in clf_results.values()
             ) / float(len(clf_results)) * 100
     runs_recall_stdev = np.sqrt(
-            sum(vars[1][2]
-                for vars in clf_results.values()
+            sum(stds[1][2] ** 2
+                for stds in clf_results.values()
                 ) / float(len(clf_results))
             ) * 100
     total_train_time = sum(
