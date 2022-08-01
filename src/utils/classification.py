@@ -72,7 +72,12 @@ def run_clf(clf, cv, df, n_splits):
                     recall_score(true_labels, pred_labels, zero_division=0)
                     )
                 )
-        split_runtime_list.append((train_time, test_time))
+        split_runtime_list.append(
+                (
+                    train_time,
+                    test_time
+                    )
+                )
         # If current run is over (total_split_per_run splits were evaluated):
         if split_iter == n_splits:
             # store splits results of current run inside classification results
