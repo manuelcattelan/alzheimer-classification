@@ -8,30 +8,27 @@ import time
 
 DT_PARAM_DISTRIBUTION = {
         "criterion": ["gini", "entropy", "log_loss"],
-        "splitter": ["best", "random"],
-        "max_depth": randint(low=1, high=10),
+        "max_depth": [None, 1, 2, 3, 4, 5],
         "min_samples_split": randint(low=2, high=40),
         "min_samples_leaf": randint(low=1, high=20),
-        "max_features": randint(low=1, high=100),
-        "min_impurity_decrease": uniform(0.1, 1)
+        "min_impurity_decrease": uniform(0.1, 0.5)
         }
 
 
 RF_PARAM_DISTRIBUTION = {
-        "n_estimators": randint(10, 300),
+        "n_estimators": randint(10, 150),
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": randint(low=1, high=10),
+        "max_depth": [None, 1, 2, 3, 4, 5],
         "min_samples_split": randint(low=2, high=40),
         "min_samples_leaf": randint(low=1, high=20),
-        "max_features": randint(low=1, high=100),
-        "min_impurity_decrease": uniform(0.1, 1),
+        "min_impurity_decrease": uniform(0.1, 0.5),
         "bootstrap": [True, False]
         }
 
 
 SVC_PARAM_DISTRIBUTION = {
         "C": loguniform(1e-1, 1e3),
-        "kernel": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
+        "kernel": ["linear", "poly", "rbf", "sigmoid"],
         "degree": randint(1, 10),
         "gamma": loguniform(1e-4, 1e2),
         "probability": [True, False]
@@ -72,6 +69,7 @@ def tune_clf_params(
     tuner.fit(X, y)
     stop = time.time()
 
+    print(tuner.best_score_)
     tune_time = stop - start
 
     return tuner.best_estimator_, tuner.best_params_, tune_time
