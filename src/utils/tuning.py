@@ -3,6 +3,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import randint
 from scipy.stats import uniform
 from scipy.stats import loguniform
+import pandas as pd
 import time
 
 
@@ -69,7 +70,20 @@ def tune_clf_params(
     tuner.fit(X, y)
     stop = time.time()
 
-    print(tuner.best_score_)
     tune_time = stop - start
 
-    return tuner.best_estimator_, tuner.best_params_, tune_time
+    # Build dataframe containing tuning results
+    tuner_results = pd.DataFrame(tuner.cv_results_)[
+            [
+                "params",
+                "mean_test_score",
+                "std_test_score",
+                "mean_fit_time",
+                "mean_score_time",
+                "rank_test_score",
+                ]
+            ]
+    # Sort dataframe by best ranking parameters
+    tuner_results = tuner_results.sort_values("rank_test_score")
+
+    return tuner.best_estimator_, tuner_results
