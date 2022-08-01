@@ -57,7 +57,7 @@ def main():
             "--metric",
             choices=["accuracy", "precision", "recall"],
             help="metric on which hyperparameter tuning is based",
-            default="accuracy"
+            default=None
             )
     parser.add_argument(
             "--jobs",
