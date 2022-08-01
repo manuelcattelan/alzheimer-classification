@@ -5,8 +5,9 @@ from src.utils.tuning import RF_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
-from src.utils.performance import export_clf_report
-from src.utils.performance import export_clf_summary
+from src.utils.results import export_clf_report
+from src.utils.results import export_clf_summary
+from src.utils.results import export_clf_tuning
 import pandas as pd
 import argparse
 import errno
@@ -26,7 +27,7 @@ def main():
             )
     parser.add_argument(
             "--output",
-            help=("path to file or directory of files where "
+            help=("path to directory where "
                   "classification reports are stored"),
             required=True
             )
@@ -79,20 +80,19 @@ def main():
                 args.input
                 )
 
-    # Get extension from output argument for later validity checks:
-    # If args.input is a file -> args.output must end with .csv extension
-    # If args.input is a directory -> args.output must end with no extension
+    # Check if provided output argument is valid:
+    # it has to hold a valid path to directory in order
+    # to store classification results inside of it
     output_extension = os.path.splitext(args.output)[1]
+    if output_extension != "":
+        raise ValueError(
+                "not a valid path to directory: '"
+                + args.output
+                + "'"
+                )
 
     # Check if provided input argument holds path to existing file
     if os.path.isfile(args.input):
-        if output_extension != ".csv":
-            raise ValueError(
-                    "not a valid path to csv file: '"
-                    + args.output
-                    + "'"
-                    )
-        # If all conditions are met:
         # read data to classify
         # initialize classifier and cross validator
         # run classification on data
@@ -104,12 +104,10 @@ def main():
                 n_repeats=args.repeats,
                 random_state=0
                 )
-        clf_best_params = clf.get_params()
-        tune_time = None
         # if args.tune is defined, tune hyperparameters
         # before running classification
         if args.tune is not None:
-            clf, clf_best_params, tune_time = tune_clf_params(
+            clf, tuning_results = tune_clf_params(
                     clf,
                     df,
                     RF_PARAM_DISTRIBUTION,
@@ -117,49 +115,42 @@ def main():
                     args.metric,
                     args.jobs
                     )
+            export_clf_tuning(tuning_results, args.input, args.output)
+
         raw_results = run_clf(clf, cv, df, args.splits)
         clf_results = compute_clf_results(raw_results)
-        export_clf_report(clf_results, args.output)
-        export_clf_summary(clf_results, args.output)
+        export_clf_report(clf_results, args.input, args.output)
+        export_clf_summary(clf_results, args.input, args.output)
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
-        if output_extension != "":
-            raise ValueError(
-                    "not a valid path to directory: '"
-                    + args.output
-                    + "'"
-                    )
-        # If all conditions are met:
         # Build input/output paths for each file/directory inside args.input
         input_paths, output_paths = build_path(args.input, args.output)
         # For each directory inside args.input
-        for input_dirpath, output_dirpath in zip(
+        for input_dir, output_dir in zip(
                 sorted(input_paths),
                 sorted(output_paths)
                 ):
             # For each file inside directory
-            for input_filepath, output_filepath in zip(
-                    sorted(input_paths[input_dirpath]),
-                    sorted(output_paths[output_dirpath])
+            for input_file, output_file in zip(
+                    sorted(input_paths[input_dir]),
+                    sorted(output_paths[output_dir])
                     ):
                 # read data to classify
                 # initialize classifier and cross validator
                 # run classification on data
                 # eport classification results
-                df = pd.read_csv(input_filepath, sep=";")
+                df = pd.read_csv(input_file, sep=";")
                 clf = RandomForestClassifier(n_jobs=args.jobs, random_state=0)
                 cv = RepeatedStratifiedKFold(
                         n_splits=args.splits,
                         n_repeats=args.repeats,
                         random_state=0
                         )
-                clf_best_params = clf.get_params()
-                tune_time = None
                 # if args.tune is defined, tune hyperparameters
                 # before running classification
                 if args.tune is not None:
-                    clf, clf_best_params, tune_time = tune_clf_params(
+                    clf, tuning_results = tune_clf_params(
                             clf,
                             df,
                             RF_PARAM_DISTRIBUTION,
@@ -167,10 +158,12 @@ def main():
                             args.metric,
                             args.jobs
                             )
+                    export_clf_tuning(tuning_results, input_file, output_dir)
+
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
-                export_clf_report(clf_results, output_filepath)
-                export_clf_summary(clf_results, output_filepath)
+                export_clf_report(clf_results, input_file, output_dir)
+                export_clf_summary(clf_results, input_file, output_dir)
 
 
 if __name__ == "__main__":
