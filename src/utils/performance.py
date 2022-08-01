@@ -63,15 +63,15 @@ def export_clf_report(clf_results, output_path):
                     run_no,
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][0] * 100,
-                        clf_results[run_no][1][0] * 100
+                        np.sqrt(clf_results[run_no][1][0]) * 100
                         ),
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][1] * 100,
-                        clf_results[run_no][1][1] * 100
+                        np.sqrt(clf_results[run_no][1][1]) * 100
                         ),
                     "{:.2f} (±{:.2f})".format(
                         clf_results[run_no][0][2] * 100,
-                        clf_results[run_no][1][2] * 100
+                        np.sqrt(clf_results[run_no][1][2]) * 100
                         ),
                     "{:.4f}".format(clf_results[run_no][2][0]),
                     "{:.4f}".format(clf_results[run_no][2][1]),
