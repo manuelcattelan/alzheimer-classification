@@ -2,6 +2,7 @@ from sklearn.svm import SVC
 from sklearn.model_selection import RepeatedStratifiedKFold
 from src.utils.path import build_path
 from src.utils.preprocessing import normalize_dataframe
+from src.utils.tuning import SVC_PARAM_GRID
 from src.utils.tuning import SVC_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
@@ -46,13 +47,14 @@ def main():
             )
     parser.add_argument(
             "--tune",
-            help="tune model hyperparameters using randomized search",
-            action=argparse.BooleanOptionalAction
+            choices=["randomized", "grid"],
+            help="tune model hyperparameters using selected algorithm",
             )
     parser.add_argument(
             "--iter",
             type=int,
-            help="number of iterations for randomized hyperparameter tuning",
+            help=("number of iterations for randomized hyperparameter tuning "
+                  "(ignored by GridSearch)"),
             default=10
             )
     parser.add_argument(
@@ -109,10 +111,15 @@ def main():
         # if args.tune is defined, tune hyperparameters
         # before running classification
         if args.tune is not None:
+            if args.tune == "grid":
+                tune_params = SVC_PARAM_GRID
+            elif args.tune == "randomized":
+                tune_params = SVC_PARAM_DISTRIBUTION
             clf, tuning_results = tune_clf_params(
                     clf,
                     df,
-                    SVC_PARAM_DISTRIBUTION,
+                    args.tune,
+                    tune_params,
                     args.iter,
                     args.metric,
                     args.jobs
@@ -153,15 +160,20 @@ def main():
                 # if args.tune is defined, tune hyperparameters
                 # before running classification
                 if args.tune is not None:
+                    if args.tune == "grid":
+                        tune_params = SVC_PARAM_GRID
+                    elif args.tune == "randomized":
+                        tune_params = SVC_PARAM_DISTRIBUTION
                     clf, tuning_results = tune_clf_params(
                             clf,
                             df,
-                            SVC_PARAM_DISTRIBUTION,
+                            args.tune,
+                            tune_params,
                             args.iter,
                             args.metric,
                             args.jobs
                             )
-                    export_clf_tuning(tuning_results, input_file, output_dir)
+                    export_clf_tuning(tuning_results, input_file, output_file)
 
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
