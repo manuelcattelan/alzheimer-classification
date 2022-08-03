@@ -170,7 +170,7 @@ def main():
                             args.metric,
                             args.jobs
                             )
-                    export_clf_tuning(tuning_results, input_file, output_file)
+                    export_clf_tuning(tuning_results, input_file, output_dir)
 
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
