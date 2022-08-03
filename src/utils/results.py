@@ -1,5 +1,6 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 import csv
 import os
@@ -142,6 +143,20 @@ def export_clf_summary(clf_results, input_path, output_path):
 
 
 def export_clf_tuning(tuning_results, input_path, output_path):
+    # Build dataframe containing tuning results
+    tuning_results = pd.DataFrame(tuning_results)[
+            [
+                "params",
+                "mean_test_score",
+                "std_test_score",
+                "mean_fit_time",
+                "mean_score_time",
+                "rank_test_score",
+                ]
+            ]
+    # Sort dataframe by best ranking parameters
+    tuning_results = (pd.DataFrame(tuning_results.pop("params").values.tolist())).join(tuning_results)
+    tuning_results = tuning_results.sort_values("rank_test_score")
     # Create output directory for results
     Path(output_path).mkdir(parents=True, exist_ok=True)
     # Build output path with csv extension

@@ -111,18 +111,5 @@ def tune_clf_params(
 
     # Tune provided parameters on dataframe
     tuner.fit(X, y)
-    # Build dataframe containing tuning results
-    tuner_results = pd.DataFrame(tuner.cv_results_)[
-            [
-                "params",
-                "mean_test_score",
-                "std_test_score",
-                "mean_fit_time",
-                "mean_score_time",
-                "rank_test_score",
-                ]
-            ]
-    # Sort dataframe by best ranking parameters
-    tuner_results = tuner_results.sort_values("rank_test_score")
 
-    return tuner.best_estimator_, tuner_results
+    return tuner.best_estimator_, tuner.cv_results_
