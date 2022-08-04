@@ -4,7 +4,6 @@ from sklearn.model_selection import RandomizedSearchCV
 from scipy.stats import randint
 from scipy.stats import uniform
 from scipy.stats import loguniform
-import pandas as pd
 
 
 DT_PARAM_DISTRIBUTION = {
