@@ -70,7 +70,6 @@ def tune_clf_params(
         tune_mode,
         tune_parameters,
         tune_iterations,
-        tune_metric,
         n_jobs
         ):
     # Divide dataframe into two subframes:
@@ -85,7 +84,6 @@ def tune_clf_params(
                 estimator=clf,
                 param_distributions=tune_parameters,
                 n_iter=tune_iterations,
-                scoring=tune_metric,
                 n_jobs=n_jobs,
                 cv=StratifiedKFold(
                     n_splits=5,
@@ -99,7 +97,6 @@ def tune_clf_params(
         tuner = GridSearchCV(
                 estimator=clf,
                 param_grid=tune_parameters,
-                scoring=tune_metric,
                 n_jobs=n_jobs,
                 cv=StratifiedKFold(
                     n_splits=5,
