@@ -1,4 +1,5 @@
 from pathlib import Path
+import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -154,16 +155,85 @@ def export_clf_tuning(tuning_results, input_path, output_path):
                 "rank_test_score",
                 ]
             ]
-    # Sort dataframe by best ranking parameters
-    tuning_results = (pd.DataFrame(tuning_results.pop("params").values.tolist())).join(tuning_results)
+    # Expand params column into multiple individual ones
+    tuning_results = (
+            pd.DataFrame(tuning_results.pop("params").values.tolist())
+            ).join(tuning_results)
+    # Sort results by tuning rank
     tuning_results = tuning_results.sort_values("rank_test_score")
-    # Create output directory for results
-    Path(output_path).mkdir(parents=True, exist_ok=True)
-    # Build output path with csv extension
-    output_basename = os.path.basename(input_path)
-    output_no_suffix = Path(output_basename).with_suffix("")
-    output_no_suffix = str(output_no_suffix) + "_tuning"
-    output_with_suffix = Path(output_no_suffix).with_suffix(".csv")
-    output_full_path = output_path / output_with_suffix
+    print(tuning_results)
+    default_cols = [
+            "mean_test_score",
+            "std_test_score",
+            "mean_fit_time",
+            "mean_score_time",
+            "rank_test_score"
+            ]
+    param_cols = [
+            col 
+            for col in tuning_results.keys()
+            if not col in default_cols
+            ]
+    categorical_cols = tuning_results[param_cols].select_dtypes(
+            include=['object', 'bool']
+            ).columns
+    col_list = []
 
-    tuning_results.to_csv(output_full_path)
+    for col in param_cols:
+        if col in categorical_cols:
+            values = tuning_results[col].unique()
+            dummy_values = dict(zip(values, range(len(values))))
+            tuning_results[col] = [
+                    dummy_values[value]
+                    for value in tuning_results[col]
+                    ]
+            col_dict = dict(
+                    label=col.capitalize().replace("_", " "),
+                    tickvals=list(dummy_values.values()),
+                    ticktext=list(dummy_values.keys()),
+                    values=tuning_results[col],
+                    )
+        else:
+            col_dict = dict(
+                    # range=(
+                    #     tuning_results[col].min(),
+                    #     tuning_results[col].max()
+                    #     ),
+                    label=col.capitalize().replace("_", " "),
+                    values=tuning_results[col],
+                    )
+        col_list.append(col_dict)
+
+    col_list.append(dict(
+        range=(
+            tuning_results["mean_test_score"].min(),
+            tuning_results["mean_test_score"].max()
+            ),
+        label="Score",
+        values=tuning_results["mean_test_score"]
+        ))
+
+    fig = go.Figure(
+            data=go.Parcoords(
+                line=dict(
+                    color=tuning_results["mean_test_score"].astype('float'),
+                    showscale=True,
+                    autocolorscale=True,
+                    cauto=True,
+                    ),
+                dimensions=col_list
+                ),
+            )
+
+    fig.update_layout(width=1200, height=800,margin=dict(l=150, r=60, t=60, b=40))
+    fig.show()
+    # Create output directory for results
+    # Path(output_path).mkdir(parents=True, exist_ok=True)
+    # # Build output path with csv extension
+    # output_basename = os.path.basename(input_path)
+    # output_no_suffix = Path(output_basename).with_suffix("")
+    # output_no_suffix = str(output_no_suffix) + "_tuning"
+    # output_with_suffix = Path(output_no_suffix).with_suffix(".png")
+    # output_full_path = output_path / output_with_suffix
+
+    # fig.write_image(output_full_path, scale=3)
