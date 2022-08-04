@@ -133,12 +133,14 @@ def main():
     if os.path.isdir(args.input):
         # Build input/output paths for each file/directory inside args.input
         input_paths, output_paths = build_path(args.input, args.output)
+        dirs_results = {}
         # For each directory inside args.input
         for input_dir, output_dir in zip(
                 sorted(input_paths),
                 sorted(output_paths)
                 ):
             # For each file inside directory
+            dir_results = {}
             for input_file, output_file in zip(
                     sorted(input_paths[input_dir]),
                     sorted(output_paths[output_dir])
@@ -170,12 +172,46 @@ def main():
                             args.metric,
                             args.jobs
                             )
-                    export_clf_tuning(tuning_results, input_file, output_dir)
+                    # export_clf_tuning(tuning_results, input_file, output_dir)
 
                 raw_results = run_clf(clf, cv, df, args.splits)
                 clf_results = compute_clf_results(raw_results)
-                export_clf_report(clf_results, input_file, output_dir)
-                export_clf_summary(clf_results, input_file, output_dir)
+                dir_results[os.path.basename(input_file)] = clf_results
+                # export_clf_report(clf_results, input_file, output_dir)
+                # export_clf_summary(clf_results, input_file, output_dir)
+
+            dir_results_values = dir_results.values()
+            min_results = min(
+                    dir_results_values,
+                    key=lambda results:results['acc_mean']
+                    )
+            max_results = max(
+                    dir_results_values,
+                    key=lambda results:results['acc_mean']
+                    )
+            best_task_no = list(dir_results.keys())[list(dir_results.values()).index(max_results)]
+            worst_task_no = list(dir_results.keys())[list(dir_results.values()).index(min_results)]
+            dirs_results[input_dir] = {
+                    "best_task": (best_task_no, max_results),
+                    "worst_task": (worst_task_no, min_results)
+                    }
+
+        for dir in dirs_results:
+            print(dir)
+            print("best task is {}: accuracy={} (±{})"
+                    .format(
+                        dirs_results[dir]["best_task"][0],
+                        dirs_results[dir]["best_task"][1]["acc_mean"],
+                        dirs_results[dir]["best_task"][1]["acc_stdev"],
+                        )
+                    ) 
+            print("worst task is {}: accuracy={} (±{})"
+                    .format(
+                        dirs_results[dir]["worst_task"][0],
+                        dirs_results[dir]["worst_task"][1]["acc_mean"],
+                        dirs_results[dir]["worst_task"][1]["acc_stdev"],
+                        )
+                    ) 
 
 
 if __name__ == "__main__":
