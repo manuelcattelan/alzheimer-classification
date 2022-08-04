@@ -1,6 +1,7 @@
 from src.utils.path import build_path
 from src.utils.preprocessing import preprocess_dataframe
 from src.utils.preprocessing import export_dataframe
+from collections import defaultdict
 import pandas as pd
 import argparse
 import errno
@@ -67,7 +68,12 @@ def main():
                     )
         # If all conditions are met:
         # Build input/output paths for each file/directory inside args.input
-        input_paths, output_paths = build_path(args.input, args.output)
+        input_paths, output_paths = build_path(
+                args.input,
+                args.output,
+                defaultdict(list),
+                defaultdict(list)
+                )
         # For each directory inside args.input
         for input_dirpath, output_dirpath in zip(
                 sorted(input_paths),

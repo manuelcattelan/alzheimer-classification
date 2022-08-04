@@ -8,6 +8,7 @@ from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
 from src.utils.performance import compute_best_task
 from src.utils.performance import compute_worst_task
+from collections import defaultdict
 import pandas as pd
 import os
 
@@ -53,7 +54,12 @@ def run_rf_classification(args):
                 random_state=0
                 )
         # Build input/output paths for each file/directory inside input
-        input_paths, output_paths = build_path(args.input, args.output)
+        input_paths, output_paths = build_path(
+                args.input,
+                args.output,
+                defaultdict(list),
+                defaultdict(list)
+                )
         # Dictionary containing results for each dir inside input
         dirs_results = {}
         for input_dir, output_dir in zip(

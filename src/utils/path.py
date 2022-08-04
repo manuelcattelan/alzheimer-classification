@@ -1,12 +1,11 @@
 import os
-from collections import defaultdict
 
 
 def build_path(
         root_input_path,
         root_output_path,
-        content_input_paths=defaultdict(list),
-        content_output_paths=defaultdict(list)
+        content_input_paths,
+        content_output_paths
         ):
     # Retrieve root_input_path content (files and subdirectories)
     root_input_content = os.listdir(root_input_path)
