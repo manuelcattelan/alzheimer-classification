@@ -3,7 +3,7 @@ import numpy as np
 
 def compute_clf_results(raw_results):
     run_results = {}
-    # For each run in raw_results
+    # For each run
     for run_no in raw_results:
         # Compute mean over all splits for each performance metric
         run_performance_mean = [
@@ -26,7 +26,7 @@ def compute_clf_results(raw_results):
                 run_runtime
                 )
 
-    # Compute averaged results for classification
+    # Compute averaged results from all runs
     accuracy_mean = sum(
             means[0][0]
             for means in run_results.values()
@@ -61,6 +61,7 @@ def compute_clf_results(raw_results):
             time[2][1] for time in run_results.values()
             )
 
+    # Create results dictionary
     clf_results = {
             "acc_mean": accuracy_mean,
             "acc_stdev": accuracy_stdev,
@@ -73,3 +74,35 @@ def compute_clf_results(raw_results):
             }
 
     return clf_results
+
+
+def compute_best_task(tasks_results):
+    # Flatten results dictionary
+    tasks_results_values = tasks_results.values()
+    # Compute task with maximum mean accuracy
+    max_results = max(
+            tasks_results_values,
+            key=lambda results : results['acc_mean']
+            )
+    # Retrieve best task index from tasks results
+    best_task_no = list(tasks_results.keys())[
+            list(tasks_results.values()).index(max_results)
+            ]
+
+    return (best_task_no, max_results)
+
+
+def compute_worst_task(tasks_results):
+    # Flatten results dictionary
+    tasks_results_values = tasks_results.values()
+    # Compute task with minimum mean accuracy
+    min_results = min(
+            tasks_results_values,
+            key=lambda results : results['acc_mean']
+            )
+    # Retrieve worst task index from tasks results
+    worst_task_no = list(tasks_results.keys())[
+            list(tasks_results.values()).index(min_results)
+            ]
+
+    return (worst_task_no, min_results)
