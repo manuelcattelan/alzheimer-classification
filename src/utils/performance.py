@@ -82,21 +82,21 @@ def compute_best_tasks(tasks_results):
     # Compute tasks with best metrics
     best_accuracy = max(
             tasks_results_values,
-            key=lambda results : results['acc_mean']
+            key=lambda results: results['acc_mean']
             )
     best_accuracy_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(best_accuracy)
             ]
     best_precision = max(
             tasks_results_values,
-            key=lambda results : results['prec_mean']
+            key=lambda results: results['prec_mean']
             )
     best_precision_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(best_precision)
             ]
     best_recall = max(
             tasks_results_values,
-            key=lambda results : results['rec_mean']
+            key=lambda results: results['rec_mean']
             )
     best_recall_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(best_recall)
@@ -115,21 +115,21 @@ def compute_worst_tasks(tasks_results):
     # Compute tasks with worst metrics
     worst_accuracy = min(
             tasks_results_values,
-            key=lambda results : results['acc_mean']
+            key=lambda results: results['acc_mean']
             )
     worst_accuracy_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(worst_accuracy)
             ]
     worst_precision = min(
             tasks_results_values,
-            key=lambda results : results['prec_mean']
+            key=lambda results: results['prec_mean']
             )
     worst_precision_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(worst_precision)
             ]
     worst_recall = min(
             tasks_results_values,
-            key=lambda results : results['rec_mean']
+            key=lambda results: results['rec_mean']
             )
     worst_recall_task = list(tasks_results.keys())[
             list(tasks_results.values()).index(worst_recall)
