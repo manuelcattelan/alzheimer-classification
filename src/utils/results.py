@@ -1,239 +1,46 @@
-from pathlib import Path
-import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import csv
-import os
 
 
-def export_clf_report(clf_results, input_path, output_path):
-    # Create output directory for results
-    Path(output_path).mkdir(parents=True, exist_ok=True)
-    # Build output path with csv extension
-    output_basename = os.path.basename(input_path)
-    output_no_suffix = Path(output_basename).with_suffix("")
-    output_no_suffix = str(output_no_suffix) + "_report"
-    output_with_suffix = Path(output_no_suffix).with_suffix(".csv")
-    output_full_path = output_path / output_with_suffix
+def plot_results(dt_results, svm_results, rf_results=None):
+    dt_best_accuracies = []
+    dt_worst_accuracies = []
+    svm_best_accuracies = []
+    svm_worst_accuracies = []
+    for dt_dir, svm_dir in zip(dt_results, svm_results):
+       dt_best_accuracies.append(
+               dt_results[dt_dir]["best_tasks"][0][1]["acc_mean"]
+               ) 
+       dt_worst_accuracies.append(
+               dt_results[dt_dir]["worst_tasks"][0][1]["acc_mean"]
+               )
+       svm_best_accuracies.append(
+               svm_results[svm_dir]["best_tasks"][0][1]["acc_mean"]
+               ) 
+       svm_worst_accuracies.append(
+               svm_results[svm_dir]["worst_tasks"][0][1]["acc_mean"]
+               )
 
-    # Open output file in write mode or create it if it does not exist
-    with open(output_full_path, "w+", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        # Define header row
-        header = [
-                "Run",
-                "Accuracy [%]",
-                "Precision [%]",
-                "Recall [%]",
-                "Train time [s]",
-                "Test time [s]",
-                ]
-        # Write header row
-        writer.writerow(header)
+    labels = ["AIR", "PAPER", "AP"]
+    df = pd.DataFrame(
+            {
+                "DT": dt_best_accuracies,
+                "SVM": svm_best_accuracies
+                },
+            index=labels
+        ) 
+    ax = df.plot(kind="bar")
+    plt.show()
+    # labels = ["AIR", "PAPER", "AP"]
+    # x = np.arange(len(labels))
+    # width = 0.35
 
-        # For each run result in clf_results
-        for run_no in clf_results:
-            # Define data row
-            data = [
-                    run_no,
-                    "{:.2f} (±{:.2f})".format(
-                        clf_results[run_no][0][0] * 100,
-                        clf_results[run_no][1][0] * 100
-                        ),
-                    "{:.2f} (±{:.2f})".format(
-                        clf_results[run_no][0][1] * 100,
-                        clf_results[run_no][1][1] * 100
-                        ),
-                    "{:.2f} (±{:.2f})".format(
-                        clf_results[run_no][0][2] * 100,
-                        clf_results[run_no][1][2] * 100
-                        ),
-                    "{:.4f}".format(clf_results[run_no][2][0]),
-                    "{:.4f}".format(clf_results[run_no][2][1]),
-                    ]
-            # Write data row
-            writer.writerow(data)
+    # fig, ax = plt.subplots()
+    # rects1 = ax.bar(x - width/2, dt_best_accuracies, width, label="DT")
+    # rects2 = ax.bar(x + width/2, svm_best_accuracies, width, label="SVM")
+    # ax.set_xticks(x, labels)
+    # ax.legend()
 
-
-def export_clf_summary(clf_results, input_path, output_path):
-    # Compute averaged results for classification
-    runs_accuracy_mean = sum(
-            means[0][0]
-            for means in clf_results.values()
-            ) / float(len(clf_results)) * 100
-    runs_accuracy_stdev = np.sqrt(
-            sum(stds[1][0] ** 2
-                for stds in clf_results.values()
-                ) / float(len(clf_results))
-            ) * 100
-    runs_precision_mean = sum(
-            means[0][1]
-            for means in clf_results.values()
-            ) / float(len(clf_results)) * 100
-    runs_precision_stdev = np.sqrt(
-            sum(stds[1][1] ** 2
-                for stds in clf_results.values()
-                ) / float(len(clf_results))
-            ) * 100
-    runs_recall_mean = sum(
-            means[0][2]
-            for means in clf_results.values()
-            ) / float(len(clf_results)) * 100
-    runs_recall_stdev = np.sqrt(
-            sum(stds[1][2] ** 2
-                for stds in clf_results.values()
-                ) / float(len(clf_results))
-            ) * 100
-    total_train_time = sum(
-            time[2][0] for time in clf_results.values()
-            )
-    total_test_time = sum(
-            time[2][1] for time in clf_results.values()
-            )
-
-    # Define list of performance metrics to put in x-axis
-    metrics = ["Accuracy", "Precision", "Recall"]
-
-    # Build list of metrics mean and standard deviation
-    CTEs = [runs_accuracy_mean, runs_precision_mean, runs_recall_mean]
-    error = [runs_accuracy_stdev, runs_precision_stdev, runs_recall_stdev]
-
-    x_pos = np.arange(len(metrics))
-    y_pos = np.arange(0, 100 + 10, 10)
-
-    # Build annotation text to show precise performance metrics values
-    performance_text = ("\nAccuracy [%]: {:.2f} (±{:.2f})\n"
-                        "Precision [%]: {:.2f} (±{:.2f})\n"
-                        "Recall [%]: {:.2f} (±{:.2f})\n\n"
-                        "Train time [s]: {:.4f}\n"
-                        "Test time [s]: {:.4f}".format(
-                                runs_accuracy_mean, runs_accuracy_stdev,
-                                runs_precision_mean, runs_precision_stdev,
-                                runs_recall_mean, runs_recall_stdev,
-                                total_train_time, total_test_time
-                            )
-                        )
-    # Build bar plot
-    fig, ax = plt.subplots()
-    ax.bar(x_pos, CTEs, yerr=error,
-           align='center',
-           ecolor='black',
-           edgecolor='black',
-           capsize=5)
-    # Configure bar plot
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(metrics)
-    ax.set_xlabel(performance_text)
-    ax.set_ylabel("Score [%]")
-    ax.set_yticks(y_pos)
-
-    # Create output directory for results
-    Path(output_path).mkdir(parents=True, exist_ok=True)
-    # Build output path with png extension
-    output_basename = os.path.basename(input_path)
-    output_no_suffix = Path(output_basename).with_suffix("")
-    output_no_suffix = str(output_no_suffix) + "_summary"
-    output_with_suffix = Path(output_no_suffix).with_suffix(".png")
-    output_full_path = output_path / output_with_suffix
-
-    # Export and close plot
-    plt.tight_layout()
-    plt.savefig(output_full_path, bbox_inches="tight", dpi=400)
-    plt.close()
-
-
-def export_clf_tuning(tuning_results, input_path, output_path):
-    # Build dataframe containing tuning results
-    tuning_results = pd.DataFrame(tuning_results)[
-            [
-                "params",
-                "mean_test_score",
-                "std_test_score",
-                "mean_fit_time",
-                "mean_score_time",
-                "rank_test_score",
-                ]
-            ]
-    # Expand params column into multiple individual ones
-    tuning_results = (
-            pd.DataFrame(tuning_results.pop("params").values.tolist())
-            ).join(tuning_results)
-    # Sort results by tuning rank
-    tuning_results = tuning_results.sort_values("rank_test_score")
-    print(tuning_results)
-    default_cols = [
-            "mean_test_score",
-            "std_test_score",
-            "mean_fit_time",
-            "mean_score_time",
-            "rank_test_score"
-            ]
-    param_cols = [
-            col 
-            for col in tuning_results.keys()
-            if not col in default_cols
-            ]
-    categorical_cols = tuning_results[param_cols].select_dtypes(
-            include=['object', 'bool']
-            ).columns
-    col_list = []
-
-    for col in param_cols:
-        if col in categorical_cols:
-            values = tuning_results[col].unique()
-            dummy_values = dict(zip(values, range(len(values))))
-            tuning_results[col] = [
-                    dummy_values[value]
-                    for value in tuning_results[col]
-                    ]
-            col_dict = dict(
-                    label=col.capitalize().replace("_", " "),
-                    tickvals=list(dummy_values.values()),
-                    ticktext=list(dummy_values.keys()),
-                    values=tuning_results[col],
-                    )
-        else:
-            col_dict = dict(
-                    # range=(
-                    #     tuning_results[col].min(),
-                    #     tuning_results[col].max()
-                    #     ),
-                    label=col.capitalize().replace("_", " "),
-                    values=tuning_results[col],
-                    )
-        col_list.append(col_dict)
-
-    col_list.append(dict(
-        range=(
-            tuning_results["mean_test_score"].min(),
-            tuning_results["mean_test_score"].max()
-            ),
-        label="Score",
-        values=tuning_results["mean_test_score"]
-        ))
-
-    fig = go.Figure(
-            data=go.Parcoords(
-                line=dict(
-                    color=tuning_results["mean_test_score"].astype('float'),
-                    showscale=True,
-                    autocolorscale=True,
-                    cauto=True,
-                    ),
-                dimensions=col_list
-                ),
-            )
-
-    fig.update_layout(width=1200, height=800,margin=dict(l=150, r=60, t=60, b=40))
-    fig.show()
-    # Create output directory for results
-    # Path(output_path).mkdir(parents=True, exist_ok=True)
-    # # Build output path with csv extension
-    # output_basename = os.path.basename(input_path)
-    # output_no_suffix = Path(output_basename).with_suffix("")
-    # output_no_suffix = str(output_no_suffix) + "_tuning"
-    # output_with_suffix = Path(output_no_suffix).with_suffix(".png")
-    # output_full_path = output_path / output_with_suffix
-
-    # fig.write_image(output_full_path, scale=3)
+    # fig.tight_layout()
+    # plt.show()
