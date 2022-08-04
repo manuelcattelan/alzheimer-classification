@@ -7,8 +7,8 @@ from src.utils.tuning import SVC_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
-from src.utils.performance import compute_best_task
-from src.utils.performance import compute_worst_task
+from src.utils.performance import compute_best_tasks
+from src.utils.performance import compute_worst_tasks
 from collections import defaultdict
 import pandas as pd
 import os
@@ -104,12 +104,12 @@ def run_svm_classification(args):
                 tasks_results[task_no + 1] = clf_results
 
             # Compute best and worst tasks from all tasks results
-            best_task = compute_best_task(tasks_results)
-            worst_task = compute_worst_task(tasks_results)
+            best_tasks = compute_best_tasks(tasks_results)
+            worst_tasks = compute_worst_tasks(tasks_results)
             # Add classificaton results to current dir's results
             dirs_results[input_dir] = {
-                    "best_task": best_task,
-                    "worst_task": worst_task
+                    "best_tasks": best_tasks,
+                    "worst_tasks": worst_tasks
                     }
 
         return dirs_results

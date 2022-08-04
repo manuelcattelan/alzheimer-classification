@@ -7,6 +7,7 @@ import os
 
 
 def main():
+    # Set up parser and add possible arguments
     parser = argparse.ArgumentParser(
             formatter_class=argparse.RawDescriptionHelpFormatter
             )
@@ -49,6 +50,7 @@ def main():
             type=int,
             default=-1
             )
+    # Parse arguments
     args = parser.parse_args()
 
     # Check if provided input argument is valid, meaning:
