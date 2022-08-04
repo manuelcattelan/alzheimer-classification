@@ -76,67 +76,39 @@ def compute_clf_results(raw_results):
     return clf_results
 
 
-def compute_best_tasks(tasks_results):
+def compute_best_tasks(results):
     # Flatten results dictionary
-    tasks_results_values = tasks_results.values()
-    # Compute tasks with best metrics
-    best_accuracy = max(
-            tasks_results_values,
-            key=lambda results: results['acc_mean']
-            )
-    best_accuracy_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(best_accuracy)
-            ]
-    best_precision = max(
-            tasks_results_values,
-            key=lambda results: results['prec_mean']
-            )
-    best_precision_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(best_precision)
-            ]
-    best_recall = max(
-            tasks_results_values,
-            key=lambda results: results['rec_mean']
-            )
-    best_recall_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(best_recall)
-            ]
+    results_list = list(results.values())
+
+    # Compute tasks with best metrics and find corresponding task numbers
+    max_acc_task = max(results_list, key=lambda x: x['acc_mean'])
+    max_acc_task_no = list(results.keys())[results_list.index(max_acc_task)]
+    max_prec_task = max(results_list, key=lambda x: x['prec_mean'])
+    max_prec_task_no = list(results.keys())[results_list.index(max_prec_task)]
+    max_rec_task = max(results_list, key=lambda x: x['rec_mean'])
+    max_rec_task_no = list(results.keys())[results_list.index(max_rec_task)]
 
     return (
-            (best_accuracy_task, best_accuracy),
-            (best_precision_task, best_precision),
-            (best_recall_task, best_recall)
+            (max_acc_task_no, max_acc_task['acc_mean']),
+            (max_prec_task_no, max_prec_task['prec_mean']),
+            (max_rec_task_no, max_rec_task['rec_mean'])
             )
 
 
-def compute_worst_tasks(tasks_results):
+def compute_worst_tasks(results):
     # Flatten results dictionary
-    tasks_results_values = tasks_results.values()
-    # Compute tasks with worst metrics
-    worst_accuracy = min(
-            tasks_results_values,
-            key=lambda results: results['acc_mean']
-            )
-    worst_accuracy_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(worst_accuracy)
-            ]
-    worst_precision = min(
-            tasks_results_values,
-            key=lambda results: results['prec_mean']
-            )
-    worst_precision_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(worst_precision)
-            ]
-    worst_recall = min(
-            tasks_results_values,
-            key=lambda results: results['rec_mean']
-            )
-    worst_recall_task = list(tasks_results.keys())[
-            list(tasks_results.values()).index(worst_recall)
-            ]
+    results_list = list(results.values())
+
+    # Compute tasks with best metrics and find corresponding task numbers
+    min_acc_task = min(results_list, key=lambda x: x['acc_mean'])
+    min_acc_task_no = list(results.keys())[results_list.index(min_acc_task)]
+    min_prec_task = min(results_list, key=lambda x: x['prec_mean'])
+    min_prec_task_no = list(results.keys())[results_list.index(min_prec_task)]
+    min_rec_task = min(results_list, key=lambda x: x['rec_mean'])
+    min_rec_task_no = list(results.keys())[results_list.index(min_rec_task)]
 
     return (
-            (worst_accuracy_task, worst_accuracy),
-            (worst_precision_task, worst_precision),
-            (worst_recall_task, worst_recall)
+            (min_acc_task_no, min_acc_task['acc_mean']),
+            (min_prec_task_no, min_prec_task['prec_mean']),
+            (min_rec_task_no, min_rec_task['rec_mean'])
             )
