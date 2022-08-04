@@ -67,8 +67,8 @@ def compute_clf_results(raw_results):
             "acc_stdev": accuracy_stdev,
             "prec_mean": precision_mean,
             "prec_stdev": precision_stdev,
-            "recall_mean": recall_mean,
-            "recall_stdev": recall_stdev,
+            "rec_mean": recall_mean,
+            "rec_stdev": recall_stdev,
             "train_time": train_time,
             "test_time": test_time
             }
@@ -76,33 +76,67 @@ def compute_clf_results(raw_results):
     return clf_results
 
 
-def compute_best_task(tasks_results):
+def compute_best_tasks(tasks_results):
     # Flatten results dictionary
     tasks_results_values = tasks_results.values()
-    # Compute task with maximum mean accuracy
-    max_results = max(
+    # Compute tasks with best metrics
+    best_accuracy = max(
             tasks_results_values,
             key=lambda results : results['acc_mean']
             )
-    # Retrieve best task index from tasks results
-    best_task_no = list(tasks_results.keys())[
-            list(tasks_results.values()).index(max_results)
+    best_accuracy_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(best_accuracy)
+            ]
+    best_precision = max(
+            tasks_results_values,
+            key=lambda results : results['prec_mean']
+            )
+    best_precision_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(best_precision)
+            ]
+    best_recall = max(
+            tasks_results_values,
+            key=lambda results : results['rec_mean']
+            )
+    best_recall_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(best_recall)
             ]
 
-    return (best_task_no, max_results)
+    return (
+            (best_accuracy_task, best_accuracy),
+            (best_precision_task, best_precision),
+            (best_recall_task, best_recall)
+            )
 
 
-def compute_worst_task(tasks_results):
+def compute_worst_tasks(tasks_results):
     # Flatten results dictionary
     tasks_results_values = tasks_results.values()
-    # Compute task with minimum mean accuracy
-    min_results = min(
+    # Compute tasks with worst metrics
+    worst_accuracy = min(
             tasks_results_values,
             key=lambda results : results['acc_mean']
             )
-    # Retrieve worst task index from tasks results
-    worst_task_no = list(tasks_results.keys())[
-            list(tasks_results.values()).index(min_results)
+    worst_accuracy_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(worst_accuracy)
+            ]
+    worst_precision = min(
+            tasks_results_values,
+            key=lambda results : results['prec_mean']
+            )
+    worst_precision_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(worst_precision)
+            ]
+    worst_recall = min(
+            tasks_results_values,
+            key=lambda results : results['rec_mean']
+            )
+    worst_recall_task = list(tasks_results.keys())[
+            list(tasks_results.values()).index(worst_recall)
             ]
 
-    return (worst_task_no, min_results)
+    return (
+            (worst_accuracy_task, worst_accuracy),
+            (worst_precision_task, worst_precision),
+            (worst_recall_task, worst_recall)
+            )
