@@ -9,7 +9,7 @@ import pandas as pd
 
 DT_PARAM_DISTRIBUTION = {
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": [None, 1, 2, 3, 4, 5],
+        "max_depth": [1, 2, 3, 4, 5],
         "min_samples_split": randint(low=2, high=40),
         "min_samples_leaf": randint(low=1, high=20),
         "min_impurity_decrease": uniform(0.1, 0.5)
@@ -18,7 +18,7 @@ DT_PARAM_DISTRIBUTION = {
 
 DT_PARAM_GRID = {
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": [None, 1, 2, 3, 4, 5],
+        "max_depth": [1, 2, 3, 4, 5],
         "min_samples_split": [2, 5, 10, 20, 40],
         "min_samples_leaf": [1, 3, 5, 10, 20],
         "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5]
@@ -28,7 +28,7 @@ DT_PARAM_GRID = {
 RF_PARAM_DISTRIBUTION = {
         "n_estimators": randint(10, 150),
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": [None, 1, 2, 3, 4, 5],
+        "max_depth": [1, 2, 3, 4, 5],
         "min_samples_split": randint(low=2, high=40),
         "min_samples_leaf": randint(low=1, high=20),
         "min_impurity_decrease": uniform(0.1, 0.5),
@@ -39,7 +39,7 @@ RF_PARAM_DISTRIBUTION = {
 RF_PARAM_GRID = {
         "n_estimators": [10, 30, 50, 100, 150],
         "criterion": ["gini", "entropy", "log_loss"],
-        "max_depth": [None, 1, 2, 3, 4, 5],
+        "max_depth": [1, 2, 3, 4, 5],
         "min_samples_split": [2, 5, 10, 20, 40],
         "min_samples_leaf": [1, 3, 5, 10, 20],
         "min_impurity_decrease": [0.1, 0.2, 0.3, 0.4, 0.5],
