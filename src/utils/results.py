@@ -59,6 +59,7 @@ def plot_classification_results(dt, svm, rf, output):
     plt.ylabel("Accuracy (%)")
     # Export accuracy plot
     plt.savefig(accuracy_plot_path, bbox_inches="tight", dpi=400)
+    plt.clf()
 
     # PRECISION PLOT
     # Precisions for all folders
@@ -101,6 +102,7 @@ def plot_classification_results(dt, svm, rf, output):
     plt.ylabel("Precision (%)")
     # Export precision plot
     plt.savefig(precision_plot_path, bbox_inches="tight", dpi=400)
+    plt.clf()
 
     # RECALL PLOT
     # Recalls for all folders
@@ -143,6 +145,7 @@ def plot_classification_results(dt, svm, rf, output):
     plt.ylabel("Recall (%)")
     # Export recall plot
     plt.savefig(recall_plot_path, bbox_inches="tight", dpi=400)
+    plt.close()
     
 
 def plot_tuning_results(tuning_res, output):
