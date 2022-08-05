@@ -9,6 +9,7 @@ from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
 from src.utils.performance import compute_best_tasks
 from src.utils.performance import compute_worst_tasks
+from src.utils.results import plot_tuning_results
 from collections import defaultdict
 import pandas as pd
 import os
@@ -42,6 +43,7 @@ def run_svm_classification(args):
                     args.iter,
                     args.jobs
                     )
+            plot_tuning_results(tuning_results, args.output)
         # Run classification on data
         raw_results = run_clf(clf, cv, df, args.splits)
         # Compute classification results
@@ -96,6 +98,7 @@ def run_svm_classification(args):
                             args.iter,
                             args.jobs
                             )
+                    plot_tuning_results(tuning_results, args.output)
                 # Run classification on data
                 raw_results = run_clf(clf, cv, df, args.splits)
                 # Compute classification results
