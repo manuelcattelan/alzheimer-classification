@@ -1,7 +1,7 @@
 from src.models.dt import run_dt_classification
 from src.models.svm import run_svm_classification
 from src.models.rf import run_rf_classification
-from src.utils.results import plot_results
+from src.utils.results import plot_classification_results
 import argparse
 import errno
 import os
@@ -77,8 +77,8 @@ def main():
 
     dt_results = run_dt_classification(args)
     svm_results = run_svm_classification(args)
-    # rf_results = run_rf_classification(args)
-    plot_results(dt_results, svm_results)
+    rf_results = run_rf_classification(args)
+    plot_classification_results(dt_results, svm_results, rf_results, args.output)
 
 
 if __name__ == "__main__":

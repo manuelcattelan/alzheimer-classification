@@ -98,13 +98,6 @@ def run_rf_classification(args):
                 # Add classification results to current task's results
                 tasks_results[task_no + 1] = clf_results
 
-            # Compute best and worst tasks from all tasks results
-            best_tasks = compute_best_tasks(tasks_results)
-            worst_tasks = compute_worst_tasks(tasks_results)
-            # Add classificaton results to current dir's results
-            dirs_results[input_dir] = {
-                    "best_tasks": best_tasks,
-                    "worst_tasks": worst_tasks
-                    }
+            dirs_results[input_dir] = tasks_results
 
         return dirs_results
