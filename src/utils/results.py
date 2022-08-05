@@ -22,13 +22,13 @@ def plot_classification_results(dt, svm, rf, output):
     # Accuracies for all folders
     dt_air_accs = [dt[air][task]["acc_mean"] for task in dt[air]]
     svm_air_accs = [svm[air][task]["acc_mean"] for task in svm[air]]
-    rf_air_accs = [rf[air][taks]["acc_mean"] for task in rf[air]]
+    rf_air_accs = [rf[air][task]["acc_mean"] for task in rf[air]]
     dt_ap_accs = [dt[ap][task]["acc_mean"] for task in dt[ap]]
     svm_ap_accs = [svm[ap][task]["acc_mean"] for task in svm[ap]]
-    rf_ap_accs = [rf[ap][taks]["acc_mean"] for task in rf[ap]]
+    rf_ap_accs = [rf[ap][task]["acc_mean"] for task in rf[ap]]
     dt_paper_accs = [dt[paper][task]["acc_mean"] for task in dt[paper]]
     svm_paper_accs = [svm[paper][task]["acc_mean"] for task in svm[paper]]
-    rf_paper_accs = [rf[paper][taks]["acc_mean"] for task in rf[paper]]
+    rf_paper_accs = [rf[paper][task]["acc_mean"] for task in rf[paper]]
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_accs,
@@ -64,13 +64,13 @@ def plot_classification_results(dt, svm, rf, output):
     # Precisions for all folders
     dt_air_precs = [dt[air][task]["prec_mean"] for task in dt[air]]
     svm_air_precs = [svm[air][task]["prec_mean"] for task in svm[air]]
-    rf_air_precs = [rf[air][taks]["prec_mean"] for task in rf[air]]
+    rf_air_precs = [rf[air][task]["prec_mean"] for task in rf[air]]
     dt_ap_precs = [dt[ap][task]["prec_mean"] for task in dt[ap]]
     svm_ap_precs = [svm[ap][task]["prec_mean"] for task in svm[ap]]
-    rf_ap_precs = [rf[ap][taks]["prec_mean"] for task in rf[ap]]
+    rf_ap_precs = [rf[ap][task]["prec_mean"] for task in rf[ap]]
     dt_paper_precs = [dt[paper][task]["prec_mean"] for task in dt[paper]]
     svm_paper_precs = [svm[paper][task]["prec_mean"] for task in svm[paper]]
-    rf_paper_precs = [rf[paper][taks]["prec_mean"] for task in rf[paper]]
+    rf_paper_precs = [rf[paper][task]["prec_mean"] for task in rf[paper]]
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_precs,
@@ -106,13 +106,13 @@ def plot_classification_results(dt, svm, rf, output):
     # Recalls for all folders
     dt_air_recs = [dt[air][task]["rec_mean"] for task in dt[air]]
     svm_air_recs = [svm[air][task]["rec_mean"] for task in svm[air]]
-    rf_air_recs = [rf[air][taks]["rec_mean"] for task in rf[air]]
+    rf_air_recs = [rf[air][task]["rec_mean"] for task in rf[air]]
     dt_ap_recs = [dt[ap][task]["rec_mean"] for task in dt[ap]]
     svm_ap_recs = [svm[ap][task]["rec_mean"] for task in svm[ap]]
-    rf_ap_recs = [rf[ap][taks]["rec_mean"] for task in rf[ap]]
+    rf_ap_recs = [rf[ap][task]["rec_mean"] for task in rf[ap]]
     dt_paper_recs = [dt[paper][task]["rec_mean"] for task in dt[paper]]
     svm_paper_recs = [svm[paper][task]["rec_mean"] for task in svm[paper]]
-    rf_paper_recs = [rf[paper][taks]["rec_mean"] for task in rf[paper]]
+    rf_paper_recs = [rf[paper][task]["rec_mean"] for task in rf[paper]]
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_recs,
