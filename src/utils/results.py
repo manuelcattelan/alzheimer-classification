@@ -18,6 +18,9 @@ def plot_classification_results(dt, svm, rf, output):
     ap = "data/processed/ap"
     paper = "data/processed/paper"
 
+    # Plot visual configuration
+    sns.set_theme(style="ticks", font_scale=0.75)
+
     # ACCURACY PLOT
     # Accuracies for all folders
     dt_air_accs = [dt[air][task]["acc_mean"] for task in dt[air]]
@@ -32,20 +35,20 @@ def plot_classification_results(dt, svm, rf, output):
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_accs,
-        "AP": dt_ap_accs,
         "Paper": dt_paper_accs,
+        "AP": dt_ap_accs,
         "Model": "DT"
         })
     svm_df = pd.DataFrame({
         "Air": svm_air_accs,
-        "AP": svm_ap_accs,
         "Paper": svm_paper_accs,
+        "AP": svm_ap_accs,
         "Model": "SVM"
         })
     rf_df = pd.DataFrame({
         "Air": rf_air_accs,
-        "AP": rf_ap_accs,
         "Paper": rf_paper_accs,
+        "AP": rf_ap_accs,
         "Model": "RF"
         })
     # Complete dataframe with all models and all folders
@@ -54,9 +57,13 @@ def plot_classification_results(dt, svm, rf, output):
     df = pd.melt(df, "Model", var_name="Folder", value_name="Score")
     # Plot configuration
     sns.boxplot(x="Folder", y="Score", hue="Model", data=df, width=0.4)
+    plt.tick_params(axis="both", labelsize="small")
+    plt.xlabel("Feature type", fontdict={"weight": "bold"})
+    plt.ylabel("Accuracy (%)", fontdict={"weight": "bold"})
     plt.title("Accuracy comparison between models")
-    plt.xlabel("Feature types")
-    plt.ylabel("Accuracy (%)")
+    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False)
+
     # Export accuracy plot
     plt.savefig(accuracy_plot_path, bbox_inches="tight", dpi=400)
     plt.clf()
@@ -75,20 +82,20 @@ def plot_classification_results(dt, svm, rf, output):
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_precs,
-        "AP": dt_ap_precs,
         "Paper": dt_paper_precs,
+        "AP": dt_ap_precs,
         "Model": "DT"
         })
     svm_df = pd.DataFrame({
         "Air": svm_air_precs,
-        "AP": svm_ap_precs,
         "Paper": svm_paper_precs,
+        "AP": svm_ap_precs,
         "Model": "SVM"
         })
     rf_df = pd.DataFrame({
         "Air": rf_air_precs,
-        "AP": rf_ap_precs,
         "Paper": rf_paper_precs,
+        "AP": rf_ap_precs,
         "Model": "RF"
         })
     # Complete dataframe with all models and all folders
@@ -97,9 +104,12 @@ def plot_classification_results(dt, svm, rf, output):
     df = pd.melt(df, "Model", var_name="Folder", value_name="Score")
     # Plot configuration
     sns.boxplot(x="Folder", y="Score", hue="Model", data=df, width=0.4)
+    plt.tick_params(axis="both", labelsize="small")
+    plt.xlabel("Feature type", fontdict={"weight": "bold"})
+    plt.ylabel("Precision (%)", fontdict={"weight": "bold"})
     plt.title("Precision comparison between models")
-    plt.xlabel("Feature types")
-    plt.ylabel("Precision (%)")
+    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False)
     # Export precision plot
     plt.savefig(precision_plot_path, bbox_inches="tight", dpi=400)
     plt.clf()
@@ -118,20 +128,20 @@ def plot_classification_results(dt, svm, rf, output):
     # Model dataframes with results for each folder
     dt_df = pd.DataFrame({
         "Air": dt_air_recs,
-        "AP": dt_ap_recs,
         "Paper": dt_paper_recs,
+        "AP": dt_ap_recs,
         "Model": "DT"
         })
     svm_df = pd.DataFrame({
         "Air": svm_air_recs,
-        "AP": svm_ap_recs,
         "Paper": svm_paper_recs,
+        "AP": svm_ap_recs,
         "Model": "SVM"
         })
     rf_df = pd.DataFrame({
         "Air": rf_air_recs,
-        "AP": rf_ap_recs,
         "Paper": rf_paper_recs,
+        "AP": rf_ap_recs,
         "Model": "RF"
         })
     # Complete dataframe with all models and all folders
@@ -140,9 +150,12 @@ def plot_classification_results(dt, svm, rf, output):
     df = pd.melt(df, "Model", var_name="Folder", value_name="Score")
     # Plot configuration
     sns.boxplot(x="Folder", y="Score", hue="Model", data=df, width=0.4)
+    plt.tick_params(axis="both", labelsize="small")
+    plt.xlabel("Feature type", fontdict={"weight": "bold"})
+    plt.ylabel("Recall (%)", fontdict={"weight": "bold"})
     plt.title("Recall comparison between models")
-    plt.xlabel("Feature types")
-    plt.ylabel("Recall (%)")
+    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False)
     # Export recall plot
     plt.savefig(recall_plot_path, bbox_inches="tight", dpi=400)
     plt.close()
