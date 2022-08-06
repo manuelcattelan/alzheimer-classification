@@ -61,8 +61,10 @@ def plot_classification_results(dt, svm, rf, output):
     plt.xlabel("Feature type", fontdict={"weight": "bold"})
     plt.ylabel("Accuracy (%)", fontdict={"weight": "bold"})
     plt.title("Accuracy comparison between models")
-    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
-            shadow=True, fancybox=False)
+    plt.legend(
+            loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False
+            )
 
     # Export accuracy plot
     plt.savefig(accuracy_plot_path, bbox_inches="tight", dpi=400)
@@ -108,8 +110,10 @@ def plot_classification_results(dt, svm, rf, output):
     plt.xlabel("Feature type", fontdict={"weight": "bold"})
     plt.ylabel("Precision (%)", fontdict={"weight": "bold"})
     plt.title("Precision comparison between models")
-    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
-            shadow=True, fancybox=False)
+    plt.legend(
+            loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False
+            )
     # Export precision plot
     plt.savefig(precision_plot_path, bbox_inches="tight", dpi=400)
     plt.clf()
@@ -154,12 +158,14 @@ def plot_classification_results(dt, svm, rf, output):
     plt.xlabel("Feature type", fontdict={"weight": "bold"})
     plt.ylabel("Recall (%)", fontdict={"weight": "bold"})
     plt.title("Recall comparison between models")
-    plt.legend(loc="center left", bbox_to_anchor=(1.01, 0.5),
-            shadow=True, fancybox=False)
+    plt.legend(
+            loc="center left", bbox_to_anchor=(1.01, 0.5),
+            shadow=True, fancybox=False
+            )
     # Export recall plot
     plt.savefig(recall_plot_path, bbox_inches="tight", dpi=400)
     plt.close()
-    
+
 
 def plot_tuning_results(tuning_res, output):
     # Build dataframe containing tuning results

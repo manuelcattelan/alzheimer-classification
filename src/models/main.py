@@ -78,7 +78,9 @@ def main():
     dt_results = run_dt_classification(args)
     svm_results = run_svm_classification(args)
     rf_results = run_rf_classification(args)
-    plot_classification_results(dt_results, svm_results, rf_results, args.output)
+    plot_classification_results(
+            dt_results, svm_results, rf_results, args.output
+            )
 
 
 if __name__ == "__main__":
