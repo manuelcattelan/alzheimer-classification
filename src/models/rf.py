@@ -2,7 +2,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
 from src.utils.path import build_path
 from src.utils.tuning import RF_PARAM_GRID
-from src.utils.tuning import RF_PARAM_DISTRIBUTION
 from src.utils.tuning import tune_clf_params
 from src.utils.classification import run_clf
 from src.utils.performance import compute_clf_results
@@ -29,16 +28,10 @@ def run_rf_classification(args):
         # If args.tune is defined, tune hyperparameters
         tuning_results = None
         if args.tune is not None:
-            if args.tune == "grid":
-                tune_params = RF_PARAM_GRID
-            elif args.tune == "randomized":
-                tune_params = RF_PARAM_DISTRIBUTION
             clf, tuning_results = tune_clf_params(
                     clf,
                     df,
-                    args.tune,
-                    tune_params,
-                    args.iter,
+                    RF_PARAM_GRID,
                     args.jobs
                     )
         # Run classification on data
@@ -86,16 +79,10 @@ def run_rf_classification(args):
                 # If args.tune is defined, tune hyperparameters
                 tuning_results = None
                 if args.tune is not None:
-                    if args.tune == "grid":
-                        tune_params = RF_PARAM_GRID
-                    elif args.tune == "randomized":
-                        tune_params = RF_PARAM_DISTRIBUTION
                     clf, tuning_results = tune_clf_params(
                             clf,
                             df,
-                            args.tune,
-                            tune_params,
-                            args.iter,
+                            RF_PARAM_GRID,
                             args.jobs
                             )
                 # Run classification on data
