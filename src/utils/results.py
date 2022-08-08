@@ -4,6 +4,64 @@ import plotly.graph_objs as go
 import seaborn as sns
 import pandas as pd
 import numpy as np
+import os
+
+
+def export_classification_results(dt, svm, rf, output):
+    # Create output directory for results
+    Path(output).mkdir(parents=True, exist_ok=True)
+
+    for dir in dt:
+        df = pd.DataFrame(dt[dir]).T
+        df = df.round(1)
+        df = df.astype(str)
+        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
+        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
+        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
+        df = df.drop(
+                ["acc_mean", "acc_stdev",
+                 "prec_mean", "prec_stdev",
+                 "rec_mean", "rec_stdev",
+                 "train_time", "test_time"],
+                axis=1
+                )
+        dt_results_path = output + "/"  + os.path.basename(dir) + "_dt.txt"
+        df.to_latex(buf=dt_results_path, escape=False)
+
+    for dir in svm:
+        df = pd.DataFrame(svm[dir]).T
+        df = df.round(1)
+        df = df.astype(str)
+        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
+        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
+        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
+        df = df.drop(
+                ["acc_mean", "acc_stdev",
+                 "prec_mean", "prec_stdev",
+                 "rec_mean", "rec_stdev",
+                 "train_time", "test_time"],
+                axis=1
+                )
+        svm_results_path = output + "/"  + os.path.basename(dir) + "_svm.txt"
+        df.to_latex(buf=svm_results_path, escape=False)
+        
+
+    for dir in rf:
+        df = pd.DataFrame(rf[dir]).T
+        df = df.round(1)
+        df = df.astype(str)
+        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
+        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
+        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
+        df = df.drop(
+                ["acc_mean", "acc_stdev",
+                 "prec_mean", "prec_stdev",
+                 "rec_mean", "rec_stdev",
+                 "train_time", "test_time"],
+                axis=1
+                )
+        rf_results_path = output + "/"  + os.path.basename(dir) + "_rf.txt"
+        df.to_latex(buf=rf_results_path, escape=False)
 
 
 def plot_classification_results(dt, svm, rf, output):
@@ -169,10 +227,10 @@ def plot_classification_results(dt, svm, rf, output):
 
 
 def plot_tuning_results(dt, svm, rf, output):
-    df = pd.DataFrame()
-    for dir in dt:
-        for res in dt[dir]:
-            df1 = pd.DataFrame(dt[dir][res])[
+    total_df = pd.DataFrame()
+    for dir in svm:
+        for task in svm[dir]:
+            task_df = pd.DataFrame(svm[dir][task])[
                     [
                         "params",
                         "mean_test_score",
@@ -182,18 +240,22 @@ def plot_tuning_results(dt, svm, rf, output):
                         "rank_test_score",
                         ]
                     ]
-            # Get 10% of rows number in dataframe
-            rows_to_plot = round(df1.shape[0] * 10/100)
-            # Expand params column into multiple individual columns
-            df1 = (
-                    pd.DataFrame(df1.pop("params").values.tolist())
-                    ).join(df1)
-            # Get top 10% rows in dataframe
-            df1 = df1.nsmallest(
-                    rows_to_plot, "rank_test_score", keep="first"
-                    )
-            df = pd.concat([df, df1])
+            total_df = pd.concat([total_df, task_df])
 
+    # Get 10% of rows number in dataframe
+    rows_to_plot = round(total_df.shape[0] * 10/100)
+    # Expand params column into multiple individual columns
+    total_df = (
+            pd.DataFrame(total_df.pop("params").values.tolist())
+            ).join(total_df)
+    # Get top 10% rows in dataframe
+    total_df = total_df.nlargest(
+            rows_to_plot, "mean_test_score"
+            ).sort_index()
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', None)
     # # Build dataframe containing tuning results
     # tuning_res = pd.DataFrame(tuning_res)[
     #         [
