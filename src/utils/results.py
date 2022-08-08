@@ -15,7 +15,7 @@ def export_classification_results(dt, svm, rf, output):
     recall_df = pd.DataFrame()
 
     # For each directory store tasks results in according metric dataframe
-    for dt_dir, svm_dir in zip(dt, svm):
+    for dt_dir, svm_dir, rf_dir in zip(dt, svm, rf):
         dt_df = pd.DataFrame(dt[dt_dir]).T
         svm_df = pd.DataFrame(svm[svm_dir]).T
         rf_df = pd.DataFrame(rf[rf_dir]).T
