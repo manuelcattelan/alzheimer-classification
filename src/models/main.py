@@ -90,7 +90,7 @@ def main():
             )
     if args.tune is not None:
         plot_tuning_results(
-                dt_tuning_results, svm_tuning_results, svm_tuning_results,
+                dt_tuning_results, svm_tuning_results, rf_tuning_results,
                 args.output
                 )
 
