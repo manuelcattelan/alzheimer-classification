@@ -27,6 +27,7 @@ def run_dt_classification(args):
                 random_state=0
                 )
         # If args.tune is defined, tune hyperparameters
+        tuning_results = None
         if args.tune is not None:
             if args.tune == "grid":
                 tune_params = DT_PARAM_GRID
@@ -40,11 +41,12 @@ def run_dt_classification(args):
                     args.iter,
                     args.jobs
                     )
-            plot_tuning_results(tuning_results, args.output)
         # Run classification on data
         raw_results = run_clf(clf, cv, df, args.splits)
         # Compute classification results
         clf_results = compute_clf_results(raw_results)
+
+        return clf_results, tuning_results
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -63,13 +65,15 @@ def run_dt_classification(args):
                 defaultdict(list)
                 )
         # Dictionary containing results for each dir inside input
-        dirs_results = {}
+        dirs_clf_results = {}
+        dirs_tuning_results = {}
         for input_dir, output_dir in zip(
                 sorted(input_paths),
                 sorted(output_paths)
                 ):
             # Dictionary containing results for each file inside current dir
-            tasks_results = {}
+            tasks_clf_results = {}
+            tasks_tuning_results = {}
             # For each file inside current dir
             for task_no, (input_file, output_file) in enumerate(
                     zip(
@@ -80,6 +84,7 @@ def run_dt_classification(args):
                 # Read data to classify
                 df = pd.read_csv(input_file, sep=";")
                 # If args.tune is defined, tune hyperparameters
+                tuning_results = None
                 if args.tune is not None:
                     if args.tune == "grid":
                         tune_params = DT_PARAM_GRID
@@ -93,14 +98,16 @@ def run_dt_classification(args):
                             args.iter,
                             args.jobs
                             )
-                    plot_tuning_results(tuning_results, args.output)
                 # Run classification on data
                 raw_results = run_clf(clf, cv, df, args.splits)
                 # Compute classification results
                 clf_results = compute_clf_results(raw_results)
                 # Add classification results to current task's results
-                tasks_results[task_no + 1] = clf_results
+                tasks_clf_results[task_no + 1] = clf_results
+                # Add tuning results to current task's results
+                tasks_tuning_results[task_no + 1] = tuning_results
 
-            dirs_results[input_dir] = tasks_results
+            dirs_clf_results[input_dir] = tasks_clf_results
+            dirs_tuning_results[input_dir] = tasks_tuning_results
 
-        return dirs_results
+        return dirs_clf_results, dirs_tuning_results

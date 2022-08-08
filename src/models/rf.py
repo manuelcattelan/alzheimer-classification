@@ -27,6 +27,7 @@ def run_rf_classification(args):
                 random_state=0
                 )
         # If args.tune is defined, tune hyperparameters
+        tuning_results = None
         if args.tune is not None:
             if args.tune == "grid":
                 tune_params = RF_PARAM_GRID
@@ -40,11 +41,12 @@ def run_rf_classification(args):
                     args.iter,
                     args.jobs
                     )
-            plot_tuning_results(tuning_results, args.output)
         # Run classification on data
         raw_results = run_clf(clf, cv, df, args.splits)
         # Compute classification results
         clf_results = compute_clf_results(raw_results)
+
+        return clf_results, tuning_results
 
     # Check if provided input argument holds path to existing directory
     if os.path.isdir(args.input):
@@ -80,6 +82,7 @@ def run_rf_classification(args):
                 # Read data to classify
                 df = pd.read_csv(input_file, sep=";")
                 # If args.tune is defined, tune hyperparameters
+                tuning_results = None
                 if args.tune is not None:
                     if args.tune == "grid":
                         tune_params = RF_PARAM_GRID
@@ -93,7 +96,6 @@ def run_rf_classification(args):
                             args.iter,
                             args.jobs
                             )
-                    plot_tuning_results(tuning_results, args.output)
                 # Run classification on data
                 raw_results = run_clf(clf, cv, df, args.splits)
                 # Compute classification results
@@ -103,4 +105,4 @@ def run_rf_classification(args):
 
             dirs_results[input_dir] = tasks_results
 
-        return dirs_results
+        return dirs_results, tuning_results
