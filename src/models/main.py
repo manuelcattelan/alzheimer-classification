@@ -80,9 +80,17 @@ def main():
     dt_clf_results, dt_tuning_results = run_dt_classification(args)
     svm_clf_results, svm_tuning_results = run_svm_classification(args)
     rf_clf_results, rf_tuning_results = run_rf_classification(args)
+    export_classification_results(
+            dt_clf_results, svm_clf_results, rf_clf_results,
+            args.output
+            )
+    plot_classification_results(
+            dt_clf_results, svm_clf_results, rf_clf_results,
+            args.output
+            )
     if args.tune is not None:
         plot_tuning_results(
-                None, svm_tuning_results, None,
+                dt_tuning_results, svm_tuning_results, svm_tuning_results,
                 args.output
                 )
 
