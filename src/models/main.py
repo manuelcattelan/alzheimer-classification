@@ -38,14 +38,8 @@ def main():
             )
     parser.add_argument(
             "--tune",
-            help="algorithm to use for hyperparameter tuning",
-            choices=["randomized", "grid"]
-            )
-    parser.add_argument(
-            "--iter",
-            help="number of iterations for randomized hyperparameter tuning",
-            type=int,
-            default=60
+            help="tune hyperparameters using GridSearch",
+            action=argparse.BooleanOptionalAction
             )
     parser.add_argument(
             "--jobs",
