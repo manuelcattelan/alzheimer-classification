@@ -1,7 +1,9 @@
 from src.models.dt import run_dt_classification
 from src.models.svm import run_svm_classification
 from src.models.rf import run_rf_classification
+from src.utils.results import export_classification_results
 from src.utils.results import plot_classification_results
+from src.utils.results import plot_tuning_results
 import argparse
 import errno
 import os
@@ -75,12 +77,14 @@ def main():
                 + "'"
                 )
 
-    dt_results = run_dt_classification(args)
-    svm_results = run_svm_classification(args)
-    rf_results = run_rf_classification(args)
-    plot_classification_results(
-            dt_results, svm_results, rf_results, args.output
-            )
+    dt_clf_results, dt_tuning_results = run_dt_classification(args)
+    svm_clf_results, svm_tuning_results = run_svm_classification(args)
+    rf_clf_results, rf_tuning_results = run_rf_classification(args)
+    if args.tune is not None:
+        plot_tuning_results(
+                None, svm_tuning_results, None,
+                args.output
+                )
 
 
 if __name__ == "__main__":
