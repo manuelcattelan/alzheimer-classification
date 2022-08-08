@@ -65,13 +65,15 @@ def run_rf_classification(args):
                 defaultdict(list)
                 )
         # Dictionary containing results for each dir inside input
-        dirs_results = {}
+        dirs_clf_results = {}
+        dirs_tuning_results = {}
         for input_dir, output_dir in zip(
                 sorted(input_paths),
                 sorted(output_paths)
                 ):
             # Dictionary containing results for each file inside current dir
-            tasks_results = {}
+            tasks_clf_results = {}
+            tasks_tuning_results = {}
             # For each file inside current dir
             for task_no, (input_file, output_file) in enumerate(
                     zip(
@@ -101,8 +103,11 @@ def run_rf_classification(args):
                 # Compute classification results
                 clf_results = compute_clf_results(raw_results)
                 # Add classification results to current task's results
-                tasks_results[task_no + 1] = clf_results
+                tasks_clf_results[task_no + 1] = clf_results
+                # Add tuning results to current task's results
+                tasks_tuning_results[task_no + 1] = tuning_results
 
-            dirs_results[input_dir] = tasks_results
+            dirs_clf_results[input_dir] = tasks_clf_results
+            dirs_tuning_results[input_dir] = tasks_tuning_results
 
-        return dirs_results, tuning_results
+        return dirs_clf_results, dirs_tuning_results
