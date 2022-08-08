@@ -19,7 +19,7 @@ def export_classification_results(dt, svm, rf, output):
         dt_df = pd.DataFrame(dt[dt_dir]).T
         svm_df = pd.DataFrame(svm[svm_dir]).T
         rf_df = pd.DataFrame(rf[rf_dir]).T
-        
+
         # Round all entries in dataframe to 1 decimal
         dt_df = dt_df.round(1)
         svm_df = svm_df.round(1)
@@ -30,11 +30,11 @@ def export_classification_results(dt, svm, rf, output):
         svm_df = svm_df.astype(str)
         rf_df = rf_df.astype(str)
 
-        dt_dirname = os.path.basename(dt_dir) + "_dt" 
-        svm_dirname = os.path.basename(dt_dir) + "_svm" 
-        rf_dirname = os.path.basename(rf_dir) + "_rf" 
+        dt_dirname = os.path.basename(dt_dir) + "_dt"
+        svm_dirname = os.path.basename(dt_dir) + "_svm"
+        rf_dirname = os.path.basename(rf_dir) + "_rf"
 
-        # Build dataframes        
+        # Build dataframes
         accuracy_df[dt_dirname] = (
                 "$" + dt_df["acc_mean"] + "\pm" + dt_df["acc_stdev"] + "$"
                 )
