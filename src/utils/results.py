@@ -1,5 +1,6 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -167,21 +168,101 @@ def plot_classification_results(dt, svm, rf, output):
     plt.close()
 
 
-def plot_tuning_results(tuning_res, output):
-    # Build dataframe containing tuning results
-    tuning_res = pd.DataFrame(tuning_res)[
-            [
-                "params",
-                "mean_test_score",
-                "std_test_score",
-                "mean_fit_time",
-                "mean_score_time",
-                "rank_test_score",
-                ]
+def plot_tuning_results(dt, svm, rf, output):
+    df = pd.DataFrame()
+    for dir in dt:
+        for res in dt[dir]:
+            df1 = pd.DataFrame(dt[dir][res])[
+                    [
+                        "params",
+                        "mean_test_score",
+                        "std_test_score",
+                        "mean_fit_time",
+                        "mean_score_time",
+                        "rank_test_score",
+                        ]
+                    ]
+            # Get 10% of rows number in dataframe
+            rows_to_plot = round(df1.shape[0] * 10/100)
+            # Expand params column into multiple individual columns
+            df1 = (
+                    pd.DataFrame(df1.pop("params").values.tolist())
+                    ).join(df1)
+            # Get top 10% rows in dataframe
+            df1 = df1.nsmallest(
+                    rows_to_plot, "rank_test_score", keep="first"
+                    )
+            df = pd.concat([df, df1])
+
+    # # Build dataframe containing tuning results
+    # tuning_res = pd.DataFrame(tuning_res)[
+    #         [
+    #             "params",
+    #             "mean_test_score",
+    #             "std_test_score",
+    #             "mean_fit_time",
+    #             "mean_score_time",
+    #             "rank_test_score",
+    #             ]
+    #         ]
+    # # Get 10% of rows number in dataframe
+    # rows_to_plot = round(tuning_res.shape[0] * 10/100)
+    # # Expand params column into multiple individual columns
+    # tuning_res = (
+    #         pd.DataFrame(tuning_res.pop("params").values.tolist())
+    #         ).join(tuning_res)
+    # # Get top 10% rows in dataframe
+    # tuning_res = tuning_res.nsmallest(
+    #         rows_to_plot, "rank_test_score", keep="first"
+    #         )
+    # Define columns that are present for every model (all except params)
+    default_cols = [
+            "mean_test_score",
+            "std_test_score",
+            "mean_fit_time",
+            "mean_score_time",
+            "rank_test_score",
             ]
-    # Expand params column into multiple individual columns
-    tuning_res = (
-            pd.DataFrame(tuning_res.pop("params").values.tolist())
-            ).join(tuning_res)
-    # Sort results by tuning rank
-    tuning_res = tuning_res.sort_values("rank_test_score")
+    # Define columns that contain parameters
+    param_cols = [col for col in df.keys() if not col in default_cols]
+    # Define columns that contain categorical data
+    categorical_cols = df[param_cols].select_dtypes(
+            include=["object", "bool"]
+            ).columns
+    col_list = []
+    for col in param_cols:
+        if col in categorical_cols:
+            values = df[col].unique()
+            dummy_values = dict(zip(values, range(len(values))))
+            df[col] = [dummy_values[value] for value in df[col]]
+            col_dict = dict(
+                    label=col.capitalize().replace("_", " "),
+                    tickvals=list(dummy_values.values()),
+                    ticktext=list(dummy_values.keys()),
+                    values=df[col],
+                    )
+        else:
+            col_dict = dict(
+                    label=col.capitalize().replace("_", " "),
+                    values=df[col],
+                    )
+        col_list.append(col_dict)
+
+    col_list.append(dict(
+        label="Score",
+        values=df["mean_test_score"],
+        ))
+
+    line = dict(
+            color=df["mean_test_score"].astype("float"),
+            showscale=True,
+            )
+    fig = go.Figure(
+            data=go.Parcoords(
+                line=line,
+                dimensions=col_list,
+                )
+            )
+
+    fig.update_layout(width=1200, height=800)
+    fig.show()
