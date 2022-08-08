@@ -1,9 +1,7 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
-import plotly.graph_objs as go
 import seaborn as sns
 import pandas as pd
-import numpy as np
 import os
 
 
@@ -11,57 +9,69 @@ def export_classification_results(dt, svm, rf, output):
     # Create output directory for results
     Path(output).mkdir(parents=True, exist_ok=True)
 
-    for dir in dt:
-        df = pd.DataFrame(dt[dir]).T
-        df = df.round(1)
-        df = df.astype(str)
-        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
-        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
-        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
-        df = df.drop(
-                ["acc_mean", "acc_stdev",
-                 "prec_mean", "prec_stdev",
-                 "rec_mean", "rec_stdev",
-                 "train_time", "test_time"],
-                axis=1
-                )
-        dt_results_path = output + "/"  + os.path.basename(dir) + "_dt.txt"
-        df.to_latex(buf=dt_results_path, escape=False)
+    # Create a dataframe for each performance metric
+    accuracy_df = pd.DataFrame()
+    precision_df = pd.DataFrame()
+    recall_df = pd.DataFrame()
 
-    for dir in svm:
-        df = pd.DataFrame(svm[dir]).T
-        df = df.round(1)
-        df = df.astype(str)
-        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
-        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
-        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
-        df = df.drop(
-                ["acc_mean", "acc_stdev",
-                 "prec_mean", "prec_stdev",
-                 "rec_mean", "rec_stdev",
-                 "train_time", "test_time"],
-                axis=1
-                )
-        svm_results_path = output + "/"  + os.path.basename(dir) + "_svm.txt"
-        df.to_latex(buf=svm_results_path, escape=False)
+    # For each directory store tasks results in according metric dataframe
+    for dt_dir, svm_dir in zip(dt, svm):
+        dt_df = pd.DataFrame(dt[dt_dir]).T
+        svm_df = pd.DataFrame(svm[svm_dir]).T
+        rf_df = pd.DataFrame(rf[rf_dir]).T
         
+        # Round all entries in dataframe to 1 decimal
+        dt_df = dt_df.round(1)
+        svm_df = svm_df.round(1)
+        rf_df = rf_df.round(1)
 
-    for dir in rf:
-        df = pd.DataFrame(rf[dir]).T
-        df = df.round(1)
-        df = df.astype(str)
-        df["accuracy (\%)"] = "$" + df["acc_mean"] + "\pm" + df["acc_stdev"] + "$"
-        df["precision (\%)"] = "$" + df["prec_mean"] + "\pm" + df["prec_stdev"] + "$"
-        df["recall (\%)"] = "$" + df["rec_mean"] + "\pm" + df["rec_stdev"] + "$"
-        df = df.drop(
-                ["acc_mean", "acc_stdev",
-                 "prec_mean", "prec_stdev",
-                 "rec_mean", "rec_stdev",
-                 "train_time", "test_time"],
-                axis=1
+        # Convert all entries in dataframe to string
+        dt_df = dt_df.astype(str)
+        svm_df = svm_df.astype(str)
+        rf_df = rf_df.astype(str)
+
+        dt_dirname = os.path.basename(dt_dir) + "_dt" 
+        svm_dirname = os.path.basename(dt_dir) + "_svm" 
+        rf_dirname = os.path.basename(rf_dir) + "_rf" 
+
+        # Build dataframes        
+        accuracy_df[dt_dirname] = (
+                "$" + dt_df["acc_mean"] + "\pm" + dt_df["acc_stdev"] + "$"
                 )
-        rf_results_path = output + "/"  + os.path.basename(dir) + "_rf.txt"
-        df.to_latex(buf=rf_results_path, escape=False)
+        precision_df[dt_dirname] = (
+                "$" + dt_df["prec_mean"] + "\pm" + dt_df["prec_stdev"] + "$"
+                )
+        recall_df[dt_dirname] = (
+                "$" + dt_df["rec_mean"] + "\pm" + dt_df["rec_stdev"] + "$"
+                )
+        accuracy_df[svm_dirname] = (
+                "$" + svm_df["acc_mean"] + "\pm" + svm_df["acc_stdev"] + "$"
+                )
+        precision_df[svm_dirname] = (
+                "$" + svm_df["prec_mean"] + "\pm" + svm_df["prec_stdev"] + "$"
+                )
+        recall_df[svm_dirname] = (
+                "$" + svm_df["rec_mean"] + "\pm" + svm_df["rec_stdev"] + "$"
+                )
+        accuracy_df[rf_dirname] = (
+                "$" + rf_df["acc_mean"] + "\pm" + rf_df["acc_stdev"] + "$"
+                )
+        precision_df[rf_dirname] = (
+                "$" + rf_df["prec_mean"] + "\pm" + rf_df["prec_stdev"] + "$"
+                )
+        recall_df[rf_dirname] = (
+                "$" + rf_df["rec_mean"] + "\pm" + rf_df["rec_stdev"] + "$"
+                )
+
+    # Build results filepaths
+    accuracy_output_path = Path(output) / "accuracy.txt"
+    precision_output_path = Path(output) / "precision.txt"
+    recall_output_path = Path(output) / "recall.txt"
+
+    # Export results
+    accuracy_df.to_latex(buf=accuracy_output_path, escape=False)
+    precision_df.to_latex(buf=precision_output_path, escape=False)
+    recall_df.to_latex(buf=recall_output_path, escape=False)
 
 
 def plot_classification_results(dt, svm, rf, output):
@@ -227,104 +237,4 @@ def plot_classification_results(dt, svm, rf, output):
 
 
 def plot_tuning_results(dt, svm, rf, output):
-    total_df = pd.DataFrame()
-    for dir in svm:
-        for task in svm[dir]:
-            task_df = pd.DataFrame(svm[dir][task])[
-                    [
-                        "params",
-                        "mean_test_score",
-                        "std_test_score",
-                        "mean_fit_time",
-                        "mean_score_time",
-                        "rank_test_score",
-                        ]
-                    ]
-            total_df = pd.concat([total_df, task_df])
-
-    # Get 10% of rows number in dataframe
-    rows_to_plot = round(total_df.shape[0] * 10/100)
-    # Expand params column into multiple individual columns
-    total_df = (
-            pd.DataFrame(total_df.pop("params").values.tolist())
-            ).join(total_df)
-    # Get top 10% rows in dataframe
-    total_df = total_df.nlargest(
-            rows_to_plot, "mean_test_score"
-            ).sort_index()
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
-    # # Build dataframe containing tuning results
-    # tuning_res = pd.DataFrame(tuning_res)[
-    #         [
-    #             "params",
-    #             "mean_test_score",
-    #             "std_test_score",
-    #             "mean_fit_time",
-    #             "mean_score_time",
-    #             "rank_test_score",
-    #             ]
-    #         ]
-    # # Get 10% of rows number in dataframe
-    # rows_to_plot = round(tuning_res.shape[0] * 10/100)
-    # # Expand params column into multiple individual columns
-    # tuning_res = (
-    #         pd.DataFrame(tuning_res.pop("params").values.tolist())
-    #         ).join(tuning_res)
-    # # Get top 10% rows in dataframe
-    # tuning_res = tuning_res.nsmallest(
-    #         rows_to_plot, "rank_test_score", keep="first"
-    #         )
-    # Define columns that are present for every model (all except params)
-    default_cols = [
-            "mean_test_score",
-            "std_test_score",
-            "mean_fit_time",
-            "mean_score_time",
-            "rank_test_score",
-            ]
-    # Define columns that contain parameters
-    param_cols = [col for col in df.keys() if not col in default_cols]
-    # Define columns that contain categorical data
-    categorical_cols = df[param_cols].select_dtypes(
-            include=["object", "bool"]
-            ).columns
-    col_list = []
-    for col in param_cols:
-        if col in categorical_cols:
-            values = df[col].unique()
-            dummy_values = dict(zip(values, range(len(values))))
-            df[col] = [dummy_values[value] for value in df[col]]
-            col_dict = dict(
-                    label=col.capitalize().replace("_", " "),
-                    tickvals=list(dummy_values.values()),
-                    ticktext=list(dummy_values.keys()),
-                    values=df[col],
-                    )
-        else:
-            col_dict = dict(
-                    label=col.capitalize().replace("_", " "),
-                    values=df[col],
-                    )
-        col_list.append(col_dict)
-
-    col_list.append(dict(
-        label="Score",
-        values=df["mean_test_score"],
-        ))
-
-    line = dict(
-            color=df["mean_test_score"].astype("float"),
-            showscale=True,
-            )
-    fig = go.Figure(
-            data=go.Parcoords(
-                line=line,
-                dimensions=col_list,
-                )
-            )
-
-    fig.update_layout(width=1200, height=800)
-    fig.show()
+    pass
