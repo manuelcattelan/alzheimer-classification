@@ -237,4 +237,54 @@ def plot_classification_results(dt, svm, rf, output):
 
 
 def plot_tuning_results(dt, svm, rf, output):
-    pass
+    dt_tuning = pd.DataFrame()
+    svm_tuning = pd.DataFrame()
+    rf_tuning = pd.DataFrame()
+
+    tuning_cols = [
+            "params",
+            "mean_test_score",
+            "std_test_score",
+            "mean_fit_time",
+            "mean_score_time",
+            "rank_test_score",
+            ]
+
+    for dt_dir, svm_dir, rf_dir in zip(dt, svm, rf):
+        for dt_task, svm_task, rf_task in zip(
+                dt[dt_dir], svm[svm_dir], rf[rf_dir]
+                ):
+            dt_df = pd.DataFrame(dt[dt_dir][dt_task])[tuning_cols]
+            svm_df = pd.DataFrame(svm[svm_dir][svm_task])[tuning_cols]
+            rf_df = pd.DataFrame(rf[rf_dir][rf_task])[tuning_cols]
+
+            dt_tuning.concat([dt_tuning, dt_df])
+            svm_tuning.concat([svm_tuning, svm_df])
+            rf_tuning.concat([rf_tuning, rf_df])
+
+    dt_rows_to_plot = round(dt_tuning.shape[0] * 10/100)
+    svm_rows_to_plot = round(svm_tuning.shape[0] * 10/100)
+    rf_rows_to_plot = round(rf_tuning.shape[0] * 10/100)
+
+    dt_tuning = pd.DataFrame(
+            dt_tuning.pop("params").values.tolist()
+            ).join(dt_tuning)
+    svm_tuning = pd.DataFrame(
+            svm_tuning.pop("params").values.tolist()
+            ).join(svm_tuning)
+    rf_tuning = pd.DataFrame(
+            rf_tuning.pop("params").values.tolist()
+            ).join(rf_tuning)
+
+    dt_tuning = dt_tuning.nlargest(dt_rows_to_plot, "mean_test_score")
+    svm_tuning = svm_tuning.nlargest(svm_rows_to_plot, "mean_test_score")
+    rf_tuning = rf_tuning.nlargest(rf_rows_to_plot, "mean_test_score")
+
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', None)
+
+    print(dt_tuning)
+    print(svm_tuning)
+    print(rf_tuning)
