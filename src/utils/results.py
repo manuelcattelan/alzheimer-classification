@@ -339,7 +339,7 @@ def plot_tuning_results(dt, svm, rf, output):
         ))
     # Export plot figure
     dt_output_path = Path(output) / "dt_tuning.png"
-    fig.write_image(dt_output_path, dpi=400)
+    fig.write_image(dt_output_path, scale=2, width=1980, height=1080)
 
     # SVM TUNING
     # Get list of parameters for specific model
@@ -395,7 +395,7 @@ def plot_tuning_results(dt, svm, rf, output):
         ))
     # Export plot figure
     svm_output_path = Path(output) / "svm_tuning.png"
-    fig.write_image(svm_output_path, dpi=400)
+    fig.write_image(svm_output_path, scale=2, width=1980, height=1080)
 
     # RF TUNING
     # Get list of parameters for specific model
@@ -451,4 +451,4 @@ def plot_tuning_results(dt, svm, rf, output):
         ))
     # Export plot figure
     rf_output_path = Path(output) / "rf_tuning.png"
-    fig.write_image(rf_output_path, dpi=400)
+    fig.write_image(rf_output_path, scale=2, width=1980, height=1080)
