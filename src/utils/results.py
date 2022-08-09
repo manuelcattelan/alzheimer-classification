@@ -237,6 +237,9 @@ def plot_classification_results(dt, svm, rf, output):
 
 
 def plot_tuning_results(dt, svm, rf, output):
+    # Create output directory for results
+    Path(output).mkdir(parents=True, exist_ok=True)
+
     # Initialize tuning dataframe for each model
     dt_tuning = pd.DataFrame()
     svm_tuning = pd.DataFrame()
