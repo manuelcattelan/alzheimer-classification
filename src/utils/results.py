@@ -262,9 +262,9 @@ def plot_tuning_results(dt, svm, rf, output):
             rf_df = pd.DataFrame(rf[rf_dir][rf_task])[tuning_cols]
 
             # Concatenate new dataframe to corresponding model dataframe
-            dt_tuning.concat([dt_tuning, dt_df])
-            svm_tuning.concat([svm_tuning, svm_df])
-            rf_tuning.concat([rf_tuning, rf_df])
+            dt_tuning = pd.concat([dt_tuning, dt_df])
+            svm_tuning = pd.concat([svm_tuning, svm_df])
+            rf_tuning = pd.concat([rf_tuning, rf_df])
 
     # Explode params column for each model dataframe
     dt_tuning_full = pd.DataFrame(
@@ -285,7 +285,7 @@ def plot_tuning_results(dt, svm, rf, output):
     svm_tuning_top = svm_tuning_full.nlargest(svm_rows_to_plot, score)
     rf_tuning_top = rf_tuning_full.nlargest(rf_rows_to_plot, score)
 
-    # DECISION TREE TUNING
+    # DT TUNING
     # Get list of parameters for specific model
     param_cols = [col
                   for col in dt_tuning_top.columns
@@ -340,3 +340,115 @@ def plot_tuning_results(dt, svm, rf, output):
     # Export plot figure
     dt_output_path = Path(output) / "dt_tuning.png"
     fig.write_image(dt_output_path, dpi=400)
+
+    # SVM TUNING
+    # Get list of parameters for specific model
+    param_cols = [col
+                  for col in svm_tuning_top.columns
+                  if col not in tuning_cols]
+    # Get list of categorical parameters
+    categ_cols = svm_tuning_top[param_cols].select_dtypes(
+            include=["object", "bool"]
+            ).columns
+    # Round dataframe to 3 decimal digits
+    svm_tuning_top[score] = svm_tuning_top[score].round(3)
+    # For each parameter build plot dictionary
+    param_plots = []
+    for param in param_cols:
+        # If parameter is categorical, use dummy value for its representation
+        if param in categ_cols:
+            values = svm_tuning_full[param].unique()
+            dummy_values = dict(zip(values, range(len(values))))
+            svm_tuning_top[param] = [dummy_values[value]
+                                    for value in svm_tuning_top[param]]
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    tickvals=list(dummy_values.values()),
+                    ticktext=list(dummy_values.keys()),
+                    values=svm_tuning_top[param],
+                    )
+        else:
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    values=svm_tuning_top[param],
+                    range=[svm_tuning_full[param].min(),
+                           svm_tuning_full[param].max()]
+                    )
+        param_plots.append(param_plot)
+    # Append score column to plots list
+    param_plots.append(dict(
+        label="Score",
+        values=svm_tuning_top[score],
+        range=[svm_tuning_full[score].min(),
+               svm_tuning_full[score].max()]
+        ))
+    # Initialize line object
+    line = dict(
+            color=svm_tuning_top[score],
+            colorscale="RdYlGn",
+            showscale=True,
+            )
+    # Build plot figure
+    fig = go.Figure(data=go.Parcoords(
+        line=line,
+        dimensions=param_plots,
+        ))
+    # Export plot figure
+    svm_output_path = Path(output) / "svm_tuning.png"
+    fig.write_image(svm_output_path, dpi=400)
+
+    # RF TUNING
+    # Get list of parameters for specific model
+    param_cols = [col
+                  for col in rf_tuning_top.columns
+                  if col not in tuning_cols]
+    # Get list of categorical parameters
+    categ_cols = rf_tuning_top[param_cols].select_dtypes(
+            include=["object", "bool"]
+            ).columns
+    # Round dataframe to 3 decimal digits
+    rf_tuning_top[score] = rf_tuning_top[score].round(3)
+    # For each parameter build plot dictionary
+    param_plots = []
+    for param in param_cols:
+        # If parameter is categorical, use dummy value for its representation
+        if param in categ_cols:
+            values = rf_tuning_full[param].unique()
+            dummy_values = dict(zip(values, range(len(values))))
+            rf_tuning_top[param] = [dummy_values[value]
+                                    for value in rf_tuning_top[param]]
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    tickvals=list(dummy_values.values()),
+                    ticktext=list(dummy_values.keys()),
+                    values=rf_tuning_top[param],
+                    )
+        else:
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    values=rf_tuning_top[param],
+                    range=[rf_tuning_full[param].min(),
+                           rf_tuning_full[param].max()]
+                    )
+        param_plots.append(param_plot)
+    # Append score column to plots list
+    param_plots.append(dict(
+        label="Score",
+        values=rf_tuning_top[score],
+        range=[rf_tuning_full[score].min(),
+               rf_tuning_full[score].max()]
+        ))
+    # Initialize line object
+    line = dict(
+            color=rf_tuning_top[score],
+            colorscale="RdYlGn",
+            showscale=True,
+            )
+    # Build plot figure
+    fig = go.Figure(data=go.Parcoords(
+        line=line,
+        dimensions=param_plots,
+        ))
+    # Export plot figure
+    rf_output_path = Path(output) / "rf_tuning.png"
+    fig.write_image(rf_output_path, dpi=400)
