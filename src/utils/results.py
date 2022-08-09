@@ -1,5 +1,6 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import seaborn as sns
 import pandas as pd
 import os
@@ -134,7 +135,6 @@ def plot_classification_results(dt, svm, rf, output):
             loc="center left", bbox_to_anchor=(1.01, 0.5),
             shadow=True, fancybox=False
             )
-
     # Export accuracy plot
     plt.savefig(accuracy_plot_path, bbox_inches="tight", dpi=400)
     plt.clf()
@@ -241,12 +241,11 @@ def plot_tuning_results(dt, svm, rf, output):
     svm_tuning = pd.DataFrame()
     rf_tuning = pd.DataFrame()
 
+    score = "mean_test_score"
+
     tuning_cols = [
             "params",
             "mean_test_score",
-            "std_test_score",
-            "mean_fit_time",
-            "mean_score_time",
             "rank_test_score",
             ]
 
@@ -262,29 +261,70 @@ def plot_tuning_results(dt, svm, rf, output):
             svm_tuning.concat([svm_tuning, svm_df])
             rf_tuning.concat([rf_tuning, rf_df])
 
-    dt_rows_to_plot = round(dt_tuning.shape[0] * 10/100)
-    svm_rows_to_plot = round(svm_tuning.shape[0] * 10/100)
-    rf_rows_to_plot = round(rf_tuning.shape[0] * 10/100)
-
-    dt_tuning = pd.DataFrame(
+    dt_tuning_full = pd.DataFrame(
             dt_tuning.pop("params").values.tolist()
             ).join(dt_tuning)
-    svm_tuning = pd.DataFrame(
+    svm_tuning_full = pd.DataFrame(
             svm_tuning.pop("params").values.tolist()
             ).join(svm_tuning)
-    rf_tuning = pd.DataFrame(
+    rf_tuning_full = pd.DataFrame(
             rf_tuning.pop("params").values.tolist()
             ).join(rf_tuning)
 
-    dt_tuning = dt_tuning.nlargest(dt_rows_to_plot, "mean_test_score")
-    svm_tuning = svm_tuning.nlargest(svm_rows_to_plot, "mean_test_score")
-    rf_tuning = rf_tuning.nlargest(rf_rows_to_plot, "mean_test_score")
+    dt_rows_to_plot = round(dt_tuning_full.shape[0] * 10/100)
+    svm_rows_to_plot = round(svm_tuning_full.shape[0] * 10/100)
+    rf_rows_to_plot = round(rf_tuning_full.shape[0] * 10/100)
+    dt_tuning_top = dt_tuning_full.nlargest(dt_rows_to_plot, score)
+    svm_tuning_top = svm_tuning_full.nlargest(svm_rows_to_plot, score)
+    rf_tuning_top = rf_tuning_full.nlargest(rf_rows_to_plot, score)
 
-    pd.set_option('display.max_rows', None)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', None)
-    pd.set_option('display.max_colwidth', None)
+    # DECISION TREE TUNING
+    param_cols = [col
+                  for col in dt_tuning_top.columns
+                  if col not in default_cols]
+    categ_cols = dt_tuning_top[param_cols].select_dtypes(
+            include=["object", "bool"]
+            ).columns
 
-    print(dt_tuning)
-    print(svm_tuning)
-    print(rf_tuning)
+    dt_tuning_top[score] = dt_tuning_top[score].round(3)
+
+    param_plots = []
+    for param in param_cols:
+        if param in categ_cols:
+            values = dt_tuning_full[param].unique()
+            dummy_values = dict(zip(values, range(len(values))))
+            dt_tuning_top[param] = [dummy_values[value]
+                                    for value in dt_tuning_top[param]]
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    tickvals=list(dummy_values.values()),
+                    ticktext=list(dummy_values.keys()),
+                    values=dt_tuning_top[param],
+                    )
+        else:
+            param_plot = dict(
+                    label=param.capitalize().replace("_", " "),
+                    values=dt_tuning_top[param],
+                    range=[dt_tuning_full[param].min(),
+                           dt_tuning_full[param].max()]
+                    )
+        param_plots.append(param_plot)
+
+    param_plots.append(dict(
+        label="Score",
+        values=dt_tuning_top[score],
+        range=[dt_tuning_full[score].min(),
+               dt_tuning_full[score].max()]
+        ))
+    line = dict(
+            color=dt_tuning_top[score],
+            colorscale="RdYlGn",
+            showscale=True,
+            )
+    fig = go.Figure(data=go.Parcoords(
+        line=line,
+        dimensions=param_plots,
+        ))
+
+    dt_output_path = Path(output) / "dt_tuning.png"
+    fig.write_image(dt_output_path, dpi=400)
