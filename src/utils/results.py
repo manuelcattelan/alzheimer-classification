@@ -253,21 +253,31 @@ def plot_tuning_results(dt, svm, rf, output):
             "rank_test_score",
             ]
 
-    # For each directory in each model result dict
-    for dt_dir, svm_dir, rf_dir in zip(dt, svm, rf):
-        # For each task in each directory
-        for dt_task, svm_task, rf_task in zip(
-                dt[dt_dir], svm[svm_dir], rf[rf_dir]
-                ):
+    # # For each directory in each model result dict
+    # for dt_dir, svm_dir, rf_dir in zip(dt, svm, rf):
+    #     # For each task in each directory
+    #     for dt_task, svm_task, rf_task in zip(
+    #             dt[dt_dir], svm[svm_dir], rf[rf_dir]
+    #             ):
+    #         # Create dataframe from task
+    #         dt_df = pd.DataFrame(dt[dt_dir][dt_task])[tuning_cols]
+    #         svm_df = pd.DataFrame(svm[svm_dir][svm_task])[tuning_cols]
+    #         rf_df = pd.DataFrame(rf[rf_dir][rf_task])[tuning_cols]
+
+    #         # Concatenate new dataframe to corresponding model dataframe
+    #         dt_tuning = pd.concat([dt_tuning, dt_df])
+    #         svm_tuning = pd.concat([svm_tuning, svm_df])
+    #         rf_tuning = pd.concat([rf_tuning, rf_df])
+
+    for dt_dir, svm_dir in zip(dt, svm):
+        for dt_task, svm_task in zip(dt[dt_dir], svm[svm_dir]):
             # Create dataframe from task
             dt_df = pd.DataFrame(dt[dt_dir][dt_task])[tuning_cols]
             svm_df = pd.DataFrame(svm[svm_dir][svm_task])[tuning_cols]
-            rf_df = pd.DataFrame(rf[rf_dir][rf_task])[tuning_cols]
 
             # Concatenate new dataframe to corresponding model dataframe
             dt_tuning = pd.concat([dt_tuning, dt_df])
             svm_tuning = pd.concat([svm_tuning, svm_df])
-            rf_tuning = pd.concat([rf_tuning, rf_df])
 
     # Explode params column for each model dataframe
     dt_tuning_full = pd.DataFrame(
@@ -276,17 +286,17 @@ def plot_tuning_results(dt, svm, rf, output):
     svm_tuning_full = pd.DataFrame(
             svm_tuning.pop("params").values.tolist()
             ).join(svm_tuning)
-    rf_tuning_full = pd.DataFrame(
-            rf_tuning.pop("params").values.tolist()
-            ).join(rf_tuning)
+    # rf_tuning_full = pd.DataFrame(
+    #         rf_tuning.pop("params").values.tolist()
+    #         ).join(rf_tuning)
 
     # Find top 10% performing parameter combinations for each model dataframe
     dt_rows_to_plot = round(dt_tuning_full.shape[0] * 10/100)
     svm_rows_to_plot = round(svm_tuning_full.shape[0] * 10/100)
-    rf_rows_to_plot = round(rf_tuning_full.shape[0] * 10/100)
+    # rf_rows_to_plot = round(rf_tuning_full.shape[0] * 10/100)
     dt_tuning_top = dt_tuning_full.nlargest(dt_rows_to_plot, score)
     svm_tuning_top = svm_tuning_full.nlargest(svm_rows_to_plot, score)
-    rf_tuning_top = rf_tuning_full.nlargest(rf_rows_to_plot, score)
+    # rf_tuning_top = rf_tuning_full.nlargest(rf_rows_to_plot, score)
 
     # DT TUNING
     # Get list of parameters for specific model
@@ -332,7 +342,7 @@ def plot_tuning_results(dt, svm, rf, output):
     # Initialize line object
     line = dict(
             color=dt_tuning_top[score],
-            colorscale="RdYlGn",
+            colorscale="Blackbody",
             showscale=True,
             )
     # Build plot figure
@@ -388,7 +398,7 @@ def plot_tuning_results(dt, svm, rf, output):
     # Initialize line object
     line = dict(
             color=svm_tuning_top[score],
-            colorscale="RdYlGn",
+            colorscale="Blackbody",
             showscale=True,
             )
     # Build plot figure
@@ -400,58 +410,58 @@ def plot_tuning_results(dt, svm, rf, output):
     svm_output_path = Path(output) / "svm_tuning.png"
     fig.write_image(svm_output_path, scale=2, width=1980, height=1080)
 
-    # RF TUNING
-    # Get list of parameters for specific model
-    param_cols = [col
-                  for col in rf_tuning_top.columns
-                  if col not in tuning_cols]
-    # Get list of categorical parameters
-    categ_cols = rf_tuning_top[param_cols].select_dtypes(
-            include=["object", "bool"]
-            ).columns
-    # Round dataframe to 3 decimal digits
-    rf_tuning_top[score] = rf_tuning_top[score].round(3)
-    # For each parameter build plot dictionary
-    param_plots = []
-    for param in param_cols:
-        # If parameter is categorical, use dummy value for its representation
-        if param in categ_cols:
-            values = rf_tuning_full[param].unique()
-            dummy_values = dict(zip(values, range(len(values))))
-            rf_tuning_top[param] = [dummy_values[value]
-                                    for value in rf_tuning_top[param]]
-            param_plot = dict(
-                    label=param.capitalize().replace("_", " "),
-                    tickvals=list(dummy_values.values()),
-                    ticktext=list(dummy_values.keys()),
-                    values=rf_tuning_top[param],
-                    )
-        else:
-            param_plot = dict(
-                    label=param.capitalize().replace("_", " "),
-                    values=rf_tuning_top[param],
-                    range=[rf_tuning_full[param].min(),
-                           rf_tuning_full[param].max()]
-                    )
-        param_plots.append(param_plot)
-    # Append score column to plots list
-    param_plots.append(dict(
-        label="Score",
-        values=rf_tuning_top[score],
-        range=[rf_tuning_full[score].min(),
-               rf_tuning_full[score].max()]
-        ))
-    # Initialize line object
-    line = dict(
-            color=rf_tuning_top[score],
-            colorscale="RdYlGn",
-            showscale=True,
-            )
-    # Build plot figure
-    fig = go.Figure(data=go.Parcoords(
-        line=line,
-        dimensions=param_plots,
-        ))
-    # Export plot figure
-    rf_output_path = Path(output) / "rf_tuning.png"
-    fig.write_image(rf_output_path, scale=2, width=1980, height=1080)
+    # # RF TUNING
+    # # Get list of parameters for specific model
+    # param_cols = [col
+    #               for col in rf_tuning_top.columns
+    #               if col not in tuning_cols]
+    # # Get list of categorical parameters
+    # categ_cols = rf_tuning_top[param_cols].select_dtypes(
+    #         include=["object", "bool"]
+    #         ).columns
+    # # Round dataframe to 3 decimal digits
+    # rf_tuning_top[score] = rf_tuning_top[score].round(3)
+    # # For each parameter build plot dictionary
+    # param_plots = []
+    # for param in param_cols:
+    #     # If parameter is categorical, use dummy value for its representation
+    #     if param in categ_cols:
+    #         values = rf_tuning_full[param].unique()
+    #         dummy_values = dict(zip(values, range(len(values))))
+    #         rf_tuning_top[param] = [dummy_values[value]
+    #                                 for value in rf_tuning_top[param]]
+    #         param_plot = dict(
+    #                 label=param.capitalize().replace("_", " "),
+    #                 tickvals=list(dummy_values.values()),
+    #                 ticktext=list(dummy_values.keys()),
+    #                 values=rf_tuning_top[param],
+    #                 )
+    #     else:
+    #         param_plot = dict(
+    #                 label=param.capitalize().replace("_", " "),
+    #                 values=rf_tuning_top[param],
+    #                 range=[rf_tuning_full[param].min(),
+    #                        rf_tuning_full[param].max()]
+    #                 )
+    #     param_plots.append(param_plot)
+    # # Append score column to plots list
+    # param_plots.append(dict(
+    #     label="Score",
+    #     values=rf_tuning_top[score],
+    #     range=[rf_tuning_full[score].min(),
+    #            rf_tuning_full[score].max()]
+    #     ))
+    # # Initialize line object
+    # line = dict(
+    #         color=rf_tuning_top[score],
+    #         colorscale="Blackbody",
+    #         showscale=True,
+    #         )
+    # # Build plot figure
+    # fig = go.Figure(data=go.Parcoords(
+    #     line=line,
+    #     dimensions=param_plots,
+    #     ))
+    # # Export plot figure
+    # rf_output_path = Path(output) / "rf_tuning.png"
+    # fig.write_image(rf_output_path, scale=2, width=1980, height=1080)
