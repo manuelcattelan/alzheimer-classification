@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import seaborn as sns
 import pandas as pd
+import csv
 import os
 
 
@@ -269,16 +270,6 @@ def plot_tuning_results(dt, svm, rf, output):
             svm_tuning = pd.concat([svm_tuning, svm_df])
             rf_tuning = pd.concat([rf_tuning, rf_df])
 
-    # for dt_dir, svm_dir in zip(dt, svm):
-    #     for dt_task, svm_task in zip(dt[dt_dir], svm[svm_dir]):
-    #         # Create dataframe from task
-    #         dt_df = pd.DataFrame(dt[dt_dir][dt_task])[tuning_cols]
-    #         svm_df = pd.DataFrame(svm[svm_dir][svm_task])[tuning_cols]
-
-    #         # Concatenate new dataframe to corresponding model dataframe
-    #         dt_tuning = pd.concat([dt_tuning, dt_df])
-    #         svm_tuning = pd.concat([svm_tuning, svm_df])
-
     # Explode params column for each model dataframe
     dt_tuning_full = pd.DataFrame(
             dt_tuning.pop("params").values.tolist()
@@ -297,10 +288,6 @@ def plot_tuning_results(dt, svm, rf, output):
     dt_tuning_top = dt_tuning_full.nlargest(dt_rows_to_plot, score)
     svm_tuning_top = svm_tuning_full.nlargest(svm_rows_to_plot, score)
     rf_tuning_top = rf_tuning_full.nlargest(rf_rows_to_plot, score)
-
-    print(dt_tuning_top.head(100))
-    print(svm_tuning_top.head(100))
-    print(rf_tuning_top.head(100))
 
     # DT TUNING
     # Get list of parameters for specific model
@@ -355,8 +342,10 @@ def plot_tuning_results(dt, svm, rf, output):
         dimensions=param_plots,
         ))
     # Export plot figure
-    dt_output_path = Path(output) / "dt_tuning.png"
-    fig.write_image(dt_output_path, scale=2, width=1980, height=1080)
+    dt_tuning_path = Path(output) / "dt_tuning.png"
+    dt_report_path = Path(output) / "dt_tuning.csv"
+    dt_tuning_top.to_csv(dt_report_path, index=False)
+    fig.write_image(dt_tuning_path, scale=2, width=1980, height=1080)
 
     # SVM TUNING
     # Get list of parameters for specific model
@@ -411,8 +400,10 @@ def plot_tuning_results(dt, svm, rf, output):
         dimensions=param_plots,
         ))
     # Export plot figure
-    svm_output_path = Path(output) / "svm_tuning.png"
-    fig.write_image(svm_output_path, scale=2, width=1980, height=1080)
+    svm_tuning_path = Path(output) / "svm_tuning.png"
+    svm_report_path = Path(output) / "svm_tuning.csv"
+    svm_tuning_top.to_csv(svm_report_path, index=False)
+    fig.write_image(svm_tuning_path, scale=2, width=1980, height=1080)
 
     # RF TUNING
     # Get list of parameters for specific model
@@ -467,5 +458,7 @@ def plot_tuning_results(dt, svm, rf, output):
         dimensions=param_plots,
         ))
     # Export plot figure
-    rf_output_path = Path(output) / "rf_tuning.png"
-    fig.write_image(rf_output_path, scale=2, width=1980, height=1080)
+    rf_tuning_path = Path(output) / "rf_tuning.png"
+    rf_report_path = Path(output) / "rf_tuning.csv"
+    rf_tuning_top.to_csv(rf_report_path, index=False)
+    fig.write_image(rf_tuning_path, scale=2, width=1980, height=1080)
